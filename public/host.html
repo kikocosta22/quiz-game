@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Host</title>
+</head>
+<body>
+  <h1>Host Page</h1>
+  
+  <button id="createBtn">Criar Jogo</button>
+
+  <div id="info" style="display:none;">
+    <h2>Código do jogo: <span id="code"></span></h2>
+    <p>QR Equipas: <span id="teamUrl"></span></p>
+    <p>QR Host: <span id="hostUrl"></span></p>
+    <p>QR Apresentação: <span id="presentationUrl"></span></p>
+
+    <h3>Equipas:</h3>
+    <ul id="teamList"></ul>
+
+    <button id="startBtn">Começar Jogo</button>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/host.js"></script>
+</body>
+</html>
