@@ -3,21 +3,28 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const { randomUUID } = require("crypto");
+const fs = require("fs");
+
+// Carregar perguntas
+const QUESTIONS = JSON.parse(fs.readFileSync("./questions.json", "utf8"));
+
+const POINTS_SINGLE_CORRECT = 10;
+const POINTS_APPROX_WINNER = 10;
+
+
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: {
-    origin: "*",
-  },
+  cors: { origin: "*" },
+  maxHttpBufferSize: 10 * 1024 * 1024 // 10MB para fotos base64
 });
 
-// Servir ficheiros estáticos
 app.use(express.static("public"));
 
-// Jogos guardados em memória
 const games = {};
 
+// ----------- FUNÇÕES ÚTEIS -----------
 function generateCode() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let s = "";
@@ -25,16 +32,205 @@ function generateCode() {
   return s;
 }
 
-// Rotas simples
+function emitTeamsUpdated(game) {
+  io.to(game.code).emit("game:teamsUpdated", game.teams);
+}
+
+function emitScoreUpdate(game) {
+  const leaderboard = [...game.teams].sort((a, b) => b.score - a.score);
+  io.to(game.code).emit("game:scoreUpdate", { leaderboard });
+}
+
+function emitAnswersProgress(game, qIndex) {
+  const answers = game.answers[qIndex] || {};
+  const steals = game.steals[qIndex] || {};
+  const blockedSet = game.blockedTeams[qIndex] || new Set();
+
+  const answeredIds = Object.keys(answers);
+  const stealers = Object.keys(steals);
+  const blockedIds = Array.from(blockedSet);
+
+  const union = [...new Set([...answeredIds, ...stealers, ...blockedIds])];
+
+  io.to(game.code).emit("presentation:answersProgress", {
+    answeredTeamIds: union,
+    blockedTeamIds: blockedIds 
+  });
+
+  io.to(game.code).emit("presentation:updateAnswers", {
+    count: union.length
+  });
+}
+
+function syncTeamState(game, team, socket) {
+  if (!game || !team) return;
+  if (game.status !== "started") return;
+
+  const qIndex = game.currentQuestion;
+  if (qIndex == null || qIndex < 0) return;
+
+  const q = game.questions[qIndex];
+  if (!q) return;
+
+  const phase = game.phase || "question";
+
+  // limpamos o UI desta pergunta para esse socket
+socket.emit("team:prepareNextQuestion");
+
+if (phase === "between" || phase === "question") {
+  socket.emit("team:showHold", {
+    title: phase === "between" ? "RONDA" : "AGUARDA",
+    subtitle: phase === "between"
+      ? "A próxima pergunta vai começar…"
+      : "O host vai abrir as respostas…"
+  });
+  return;
+}
+
+  // Mostrar opções (answers / locked / results)
+  if (q.type === "single" && Array.isArray(q.options)) {
+    const optionsForTeams = q.options.map(o => ({ type: o.type, value: o.value }));
+    socket.emit("team:showOptions", {
+      index: qIndex,
+      type: q.type,
+      options: optionsForTeams
+    });
+  } else if (q.type === "approximation") {
+    socket.emit("team:showOptions", {
+      index: qIndex,
+      type: q.type,
+      options: []
+    });
+  }
+
+  const answersForQ = game.answers[qIndex] || {};
+  const stealsForQ = game.steals[qIndex] || {};
+  const blockedSet = game.blockedTeams[qIndex] || new Set();
+
+  // Se foi bloqueado nesta pergunta
+  if (blockedSet.has(team.id)) {
+    let byName = null;
+    const logs = game.blockLogs[qIndex] || [];
+    const ev = logs.find(e => e.targetId === team.id);
+    if (ev) {
+      const blocker = game.teams.find(t => t.id === ev.blockerId);
+      if (blocker) byName = blocker.name;
+    }
+    socket.emit("team:blockedForQuestion", { byTeamName: byName });
+  }
+
+  // Se usou steal nesta pergunta
+  if (stealsForQ[team.id]) {
+    const victim = game.teams.find(t => t.id === stealsForQ[team.id]);
+    socket.emit("team:powerUsed", {
+      power: "steal",
+      targetTeamName: victim ? victim.name : ""
+    });
+  }
+
+  // Se já tinha respondido
+  if (answersForQ[team.id]) {
+    socket.emit("team:answerReceived");
+  }
+
+  // Se as respostas estão fechadas
+  if (phase === "locked" || phase === "results") {
+    socket.emit("team:lockAnswers");
+  }
+
+  // Se já há resultados desta pergunta, manda-os também
+  if (phase === "results" && game.resultCache && game.resultCache[qIndex]) {
+    const cache = game.resultCache[qIndex];
+    socket.emit("team:showResults", {
+      type: cache.type,
+      correctIndex: cache.correctIndex,
+      correctNumber: cache.correctNumber,
+      results: cache.results
+    });
+  }
+}
+
+function syncPresentationState(game, socket) {
+  if (!game) return;
+
+  // antes do jogo começar
+  if (game.status !== "started") {
+    socket.emit("presentation:nextScreen", {
+      nextIndex: 0,
+      total: game.questions.length
+    });
+    return;
+  }
+
+  const qIndex = game.currentQuestion;
+  const q = game.questions[qIndex];
+  const phase = game.phase || "question";
+
+  // ENTRE PERGUNTAS → mostra banner de ronda, não a pergunta
+  if (phase === "between" || qIndex == null || qIndex < 0 || !q) {
+    socket.emit("presentation:nextScreen", {
+      nextIndex: (qIndex ?? -1) + 1, // próxima ronda (1-based)
+      total: game.questions.length
+    });
+
+    return;
+  }
+
+  // Mostrar SEMPRE a pergunta primeiro
+  socket.emit("presentation:showQuestion", {
+    index: qIndex,
+    total: game.questions.length,
+    question: q
+  });
+
+  // Progresso de respostas (respondeu / roubou / bloqueado)
+  const answeredIds = Object.keys(game.answers[qIndex] || {});
+  const stealers = Object.keys(game.steals[qIndex] || {});
+  const blockedIds = Array.from(game.blockedTeams[qIndex] || new Set());
+  const union = [...new Set([...answeredIds, ...stealers, ...blockedIds])];
+
+  socket.emit("presentation:answersProgress", {
+    answeredTeamIds: union,
+    blockedTeamIds: blockedIds
+  });
+  socket.emit("presentation:updateAnswers", { count: union.length });
+
+  // Se já estamos nas respostas/locked/resultados, mostra também as opções
+  if (phase === "answers" || phase === "locked" || phase === "results") {
+    socket.emit("presentation:showAnswers", {
+      index: qIndex,
+      type: q.type,
+      options: q.options || []
+    });
+  }
+
+  // Se já há resultados cacheados, envia-os
+  if (phase === "results" && game.resultCache && game.resultCache[qIndex]) {
+    socket.emit("presentation:revealResults", game.resultCache[qIndex]);
+  }
+}
+
+
+function emitPhase(game) {
+  const payload = {
+    phase: game.phase,
+    index: game.currentQuestion,
+    total: game.questions.length
+  };
+  if (game.hostId) io.to(game.hostId).emit("host:phaseState", payload);
+}
+
+
+// ----------- ROTAS -----------
 app.get("/", (req, res) => {
   res.send("Quiz Game Server is running!");
 });
 
-// WebSocket
+// ----------- SOCKET.IO -----------
 io.on("connection", (socket) => {
   console.log("Connected:", socket.id);
 
-  // Host cria jogo
+  // --- HOST CRIA JOGO ---
   socket.on("host:createGame", () => {
     const code = generateCode();
 
@@ -44,14 +240,31 @@ io.on("connection", (socket) => {
       teams: [],
       status: "lobby",
       currentQuestion: -1,
+        phase: "lobby",   
+      questions: QUESTIONS,
+
+      answers: {},
+      blockedTeams: {},
+      steals: {},
+
+      blockLogs: {},
+      stealLogs: {},
+
+      resultCache: {}   
     };
 
     socket.join(code);
     socket.emit("host:gameCreated", { code });
+    socket.emit("host:joinedAsHost", {
+      code,
+      teams: games[code].teams,
+      status: "lobby",
+      currentQuestion: -1
+    });
   });
 
-  // Equipa ou Host entra num jogo
-  socket.on("joinGame", ({ code, role, name, avatar }) => {
+  // --- JOIN GAME ---
+  socket.on("joinGame", ({ code, role, name, avatar, teamId }) => {
     const game = games[code];
     if (!game) {
       socket.emit("joinError", "Jogo não existe.");
@@ -60,52 +273,534 @@ io.on("connection", (socket) => {
 
     socket.join(code);
 
+    // --- EQUIPA ---
     if (role === "team") {
-      const team = {
+      let team = teamId ? game.teams.find(t => t.id === teamId) : null;
+
+      // Jogo já começou → não pode entrar como novo
+      if (game.status !== "lobby" && !team) {
+        socket.emit("joinError", "O jogo já começou!");
+        return;
+      }
+
+      // Reentrada da equipa
+      if (team) {
+        team.socketId = socket.id;
+        if (name) team.name = name;
+        if (avatar) team.avatar = avatar;
+
+        emitTeamsUpdated(game);
+        socket.emit("team:joined", team);
+
+        syncTeamState(game, team, socket);
+
+        return;
+      }
+
+      // Nova equipa
+      team = {
         id: randomUUID(),
-        name,
-        avatar: avatar || "😎",
+        name: name || "Equipa",
+        avatar: avatar || null,
         socketId: socket.id,
         score: 0,
-        powers: {
-          steal: false,
-          fifty: false,
-          block: false,
-        },
+        powers: { steal: false, fifty: false, block: false }
       };
+
       game.teams.push(team);
 
+      socket.emit("team:storeId", team.id);
       socket.emit("team:joined", team);
-      io.to(game.code).emit("host:teamsUpdated", game.teams);
+      emitTeamsUpdated(game);
+
+      syncTeamState(game, team, socket);
+
     }
 
+    // --- HOST ---
     if (role === "host") {
       game.hostId = socket.id;
-      socket.emit("host:joinedAsHost", game);
+
+      socket.emit("host:joinedAsHost", {
+        code: game.code,
+        teams: game.teams,
+        status: game.status,
+        currentQuestion: game.currentQuestion
+      });
+
+      emitTeamsUpdated(game);
+      emitScoreUpdate(game);
     }
 
+    // --- APRESENTAÇÃO ---
     if (role === "presentation") {
-      socket.emit("presentation:connected", game);
-    }
+  socket.emit("presentation:connected", {
+    code: game.code,
+    status: game.status,
+    currentQuestion: game.currentQuestion
   });
 
-  // Host começa o jogo
+  // leaderboard e equipas atuais (se já tiveres helpers, usa-os)
+  emitTeamsUpdated(game);
+  emitScoreUpdate(game);
+
+  // MUITO IMPORTANTE: sincronizar o estado atual corretamente
+  syncPresentationState(game, socket);
+}
+  });
+
+  // --- HOST COMEÇA JOGO ---
   socket.on("host:startGame", ({ code }) => {
     const game = games[code];
     if (!game) return;
 
     game.status = "started";
-    game.currentQuestion = 0;
+    game.currentQuestion = -1;
+    game.phase = "between"; // NOVO
 
-    io.to(code).emit("game:started", { questionIndex: 0 });
+    io.to(code).emit("game:started", { code });
   });
 
-  // Desligar
+  // --- HOST MOSTRA PERGUNTA ---
+  socket.on("host:startQuestion", ({ code }) => {
+    const game = games[code];
+    if (!game || game.status !== "started") return;
+
+    const next = game.currentQuestion + 1;
+    if (next >= game.questions.length) {
+      game.status = "finished";
+      io.to(code).emit("game:finished");
+      return;
+    }
+
+    game.currentQuestion = next;
+    game.phase = "question"; // NOVO
+    emitPhase(game);
+    const qIndex = next;
+    const q = game.questions[qIndex];
+
+    game.answers[qIndex] = {};
+    game.blockedTeams[qIndex] = new Set();
+    game.steals[qIndex] = {};
+
+    game.blockLogs[qIndex] = [];
+    game.stealLogs[qIndex] = [];
+
+   io.to(code).emit("presentation:showQuestion", {
+  index: next,
+  total: game.questions.length,
+  question: q
+});
+
+io.to(code).emit("team:showHold", {
+  title: "AGUARDA",
+  subtitle: "O host vai abrir as respostas…"
+});
+
+    io.to(code).emit("team:prepareNextQuestion");
+
+    emitAnswersProgress(game, qIndex);
+  });
+
+  // --- HOST MOSTRA RESPOSTAS ---
+  socket.on("host:showAnswers", ({ code }) => {
+    const game = games[code];
+    if (!game) return;
+
+    game.phase = "answers"; // NOVO
+    emitPhase(game);
+    const qIndex = game.currentQuestion;
+    const q = game.questions[qIndex];
+
+    io.to(code).emit("presentation:showAnswers", {
+      index: qIndex,
+      type: q.type,
+      options: q.options || []
+    });
+
+    let optionsForTeams = [];
+    if (q.type === "single" && Array.isArray(q.options)) {
+      optionsForTeams = q.options.map(o => ({ type: o.type, value: o.value }));
+    }
+
+    io.to(code).emit("team:showOptions", {
+      index: qIndex,
+      type: q.type,
+      options: optionsForTeams
+    });
+
+    io.to(code).emit("team:openAnswerWindow");
+  });
+
+  // --- PODERES ---
+  socket.on("team:usePower", ({ code, teamId, power, targetName }) => {
+    const game = games[code];
+    if (!game) return;
+
+    const qIndex = game.currentQuestion;
+    const q = game.questions[qIndex];
+
+    const team = game.teams.find(t => t.id === teamId);
+
+    if (team.powers[power]) {
+      socket.emit("team:powerError", { power, message: "Já usaste este poder." });
+      return;
+    }
+
+    // --- 50:50 ---
+    if (power === "fifty") {
+      if (q.type !== "single") {
+        socket.emit("team:powerError", { power, message: "Não aplicável aqui." });
+        return;
+      }
+
+      const total = q.options.length;
+      const correct = q.correctIndex;
+
+      const allIdx = [...Array(total).keys()];
+      const wrongIdx = allIdx.filter(i => i !== correct);
+
+      let removeCount = total >= 4 ? 2 : 1;
+      if (removeCount > wrongIdx.length) removeCount = wrongIdx.length;
+
+      const removed = [];
+      while (removed.length < removeCount) {
+        const candidate = wrongIdx[Math.floor(Math.random() * wrongIdx.length)];
+        if (!removed.includes(candidate)) removed.push(candidate);
+      }
+
+      const remaining = allIdx.filter(i => !removed.includes(i));
+
+      team.powers.fifty = true;
+
+      socket.emit("team:applyFifty", { remainingIndices: remaining });
+      socket.emit("team:powerUsed", { power });
+      return;
+    }
+
+    // --- PODERES COM ALVO (block, steal) ---
+    const targetTeam = game.teams.find(
+      t => t.name.toLowerCase() === targetName.toLowerCase()
+    );
+
+    if (!targetTeam) {
+      socket.emit("team:powerError", { power, message: "Equipa inválida." });
+      return;
+    }
+
+    // BLOCK
+    if (power === "block") {
+      team.powers.block = true;
+      game.blockedTeams[qIndex].add(targetTeam.id);
+
+      if (!game.blockLogs[qIndex]) game.blockLogs[qIndex] = [];
+      game.blockLogs[qIndex].push({
+        blockerId: team.id,
+        targetId: targetTeam.id
+      });
+
+      if (targetTeam.socketId) {
+        io.to(targetTeam.socketId).emit("team:blockedForQuestion", {
+          byTeamName: team.name
+        });
+      }
+
+      emitAnswersProgress(game, qIndex);
+      socket.emit("team:powerUsed", { power, targetTeamName: targetTeam.name });
+      return;
+    }
+
+    // STEAL
+    if (power === "steal") {
+      team.powers.steal = true;
+      game.steals[qIndex][team.id] = targetTeam.id;
+
+      if (!game.stealLogs[qIndex]) game.stealLogs[qIndex] = [];
+      game.stealLogs[qIndex].push({
+        thiefId: team.id,
+        victimId: targetTeam.id
+      });
+
+      emitAnswersProgress(game, qIndex);
+      socket.emit("team:powerUsed", { power, targetTeamName: targetTeam.name });
+      return;
+    }
+  });
+
+  // --- EQUIPA RESPONDE ---
+  socket.on("team:answer", ({ code, teamId, answer }) => {
+    const game = games[code];
+    if (!game) return;
+
+    const qIndex = game.currentQuestion;
+    const q = game.questions[qIndex];
+
+    // não pode responder se foi bloqueado
+    if (game.blockedTeams[qIndex].has(teamId)) {
+      socket.emit("team:blockedForQuestion", { byTeamName: null });
+      return;
+    }
+
+    // quem usou steal não pode responder
+    if (game.steals[qIndex][teamId]) {
+      socket.emit("team:answerRejected", { reason: "stealUsed" });
+      return;
+    }
+
+    game.answers[qIndex][teamId] = { answer, socketId: socket.id, timestamp: Date.now()};
+
+    socket.emit("team:answerReceived");
+    emitAnswersProgress(game, qIndex);
+  });
+
+  // --- FECHAR RESPOSTAS ---
+socket.on("host:forceCloseAnswers", ({ code }) => {
+  const game = games[code];
+  emitPhase(game);
+  if (!game) return;
+
+  game.phase = "locked"; // NOVO
+  io.to(code).emit("team:lockAnswers");
+});
+
+  // --- REVELAR RESPOSTA ---
+  socket.on("host:revealAnswer", ({ code }) => {
+    const game = games[code];
+    if (!game) return;
+
+       game.phase = "results";
+       emitPhase(game);
+    const qIndex = game.currentQuestion;
+    const blockedSet = game.blockedTeams[qIndex] || new Set();
+    const q = game.questions[qIndex];
+
+    let results = {};
+
+    // ---- RESPOSTAS DE ESCOLHA ----
+    if (q.type === "single") {
+  const correct = q.correctIndex;
+  const answers = game.answers[qIndex] || {};
+  const stealsThisQ = game.steals[qIndex] || {};
+
+  // marcar respostas / ignorar bloqueados
+  for (const t of game.teams) {
+    const a = answers[t.id];
+    if (!a) continue;
+
+    if (blockedSet.has(t.id)) {
+      results[t.id] = { blocked: true };
+      continue;
+    }
+    const isCorrect = (parseInt(a.answer, 10) === correct);
+    if (isCorrect) {
+      results[t.id] = { correct: true };
+      t.score += POINTS_SINGLE_CORRECT;
+    }
+  }
+
+  // steals: só valem se o alvo estiver correto E não bloqueado
+  for (const thiefId in stealsThisQ) {
+    const victimId = stealsThisQ[thiefId];
+    if (blockedSet.has(thiefId)) continue;
+    if (blockedSet.has(victimId)) continue;
+
+    if (results[victimId] && results[victimId].correct) {
+      const thief = game.teams.find(x => x.id === thiefId);
+      if (thief) {
+        thief.score += POINTS_SINGLE_CORRECT;
+        results[thiefId] = { ...(results[thiefId] || {}), correctViaSteal: true };
+      }
+    } else {
+      // vítima não acertou → roubo falha explicitamente
+      results[thiefId] = { ...(results[thiefId] || {}), stealFail: true };
+    }
+  }
+}
+
+
+    // ---- APROXIMAÇÃO ----
+   // ---- APROXIMAÇÃO ----
+// regra:
+// 1) encontra a equipa com menor distância (tie-break = quem respondeu primeiro)
+// 2) essa equipa ganha 10 pontos (POINTS_APPROX_WINNER)
+// 3) se alguém roubou a resposta *dessa* equipa vencedora,
+//    o(s) ladrão(ões) também ganham 10 pontos
+if (q.type === "approximation") {
+  const answers = game.answers[qIndex] || {};
+  let bestTeamId = null;
+  let minDist = null;
+
+  // avaliar só não bloqueados
+  for (const t of game.teams) {
+    const a = answers[t.id];
+    if (!a) continue;
+
+    const val = parseFloat(a.answer);
+    const dist = Math.abs(val - q.correctNumber);
+
+    // guardar no results (para mostrar números), mas marcando bloqueados
+    if (blockedSet.has(t.id)) {
+      results[t.id] = { blocked: true, answer: val, distance: dist };
+      continue;
+    }
+    results[t.id] = { ...(results[t.id] || {}), answer: val, distance: dist, ts: a.timestamp || 0 };
+
+    if (
+      minDist === null ||
+      dist < minDist ||
+      (dist === minDist && results[t.id].ts < (results[bestTeamId]?.ts || Infinity))
+    ) {
+      minDist = dist;
+      bestTeamId = t.id;
+    }
+  }
+
+  if (bestTeamId) {
+    // vencedor (não bloqueado)
+    const winner = game.teams.find(t => t.id === bestTeamId);
+    if (winner) {
+      winner.score += POINTS_APPROX_WINNER;
+      results[bestTeamId] = { ...(results[bestTeamId] || {}), winner: true };
+    }
+
+    // ladrões do vencedor (não bloqueados)
+    const stealsThisQ = game.steals[qIndex] || {};
+    for (const thiefId in stealsThisQ) {
+      const victimId = stealsThisQ[thiefId];
+      if (victimId !== bestTeamId) continue;
+      if (blockedSet.has(thiefId)) continue; // ladrão bloqueado não ganha
+
+      const thief = game.teams.find(t => t.id === thiefId);
+      if (thief) {
+        thief.score += POINTS_APPROX_WINNER;
+        results[thiefId] = { ...(results[thiefId] || {}), winnerViaSteal: true };
+      }
+    }
+  } else {
+    // ninguém elegível → nada a pontuar
+  }
+}
+
+
+
+
+    emitScoreUpdate(game);
+
+    // ----- LOGS DE PODERES -----
+    const stealsLog = (game.stealLogs[qIndex] || []).map(ev => {
+      return {
+        fromTeamName: game.teams.find(t => t.id === ev.thiefId)?.name,
+        toTeamName: game.teams.find(t => t.id === ev.victimId)?.name
+      };
+    });
+
+    const blocksLog = (game.blockLogs[qIndex] || []).map(ev => {
+      return {
+        fromTeamName: game.teams.find(t => t.id === ev.blockerId)?.name,
+        toTeamName: game.teams.find(t => t.id === ev.targetId)?.name
+      };
+    });
+
+    // guardar em cache para re-sincronizar quem faz refresh
+game.resultCache[qIndex] = {
+  type: q.type,
+  correctIndex: q.correctIndex,
+  correctNumber: q.correctNumber,
+  results,
+  explanation: q.explanation,
+  powerLog: {
+    steals: stealsLog,
+    blocks: blocksLog
+  }
+};
+    
+for (const t of game.teams) {
+  const r = results[t.id] || {};
+  const blockedSet = game.blockedTeams[qIndex] || new Set();
+  const wasBlocked = blockedSet.has(t.id);
+  const answered = !!(game.answers[qIndex] && game.answers[qIndex][t.id]);
+  const usedSteal = !!(game.steals[qIndex] && game.steals[qIndex][t.id]);
+
+  let status = "wrong";
+  let title = "RESPOSTA ERRADA";
+  let subtitle = "Mais sorte na próxima!";
+
+  if (q.type === "single") {
+    if (r.correct) {
+      status = "correct";
+      title = "CERTO!";
+      subtitle = "+10 pontos";
+    } else if (r.correctViaSteal) {
+      status = "steal_success";
+      title = "ROUBO CERTO!";
+      subtitle = "+10 pontos";
+    } else if (usedSteal) {
+      status = "steal_fail";
+      title = "ROUBO FALHOU";
+      subtitle = "Não acertou, sem pontos.";
+    }
+  } else if (q.type === "approximation") {
+    if (r.winner || r.winnerViaSteal) {
+      status = "approx_win";
+      title = r.winnerViaSteal ? "ROUBO CERTO!" : "MAIS PRÓXIMO!";
+      subtitle = "+10 pontos";
+    } else if (usedSteal) {
+      status = "steal_fail";
+      title = "ROUBO FALHOU";
+      subtitle = "Não acertou, sem pontos.";
+    }
+  }
+
+  if (wasBlocked) {
+    status = "blocked";
+    title = "BLOQUEADO";
+    subtitle = "Sem jogada nesta pergunta.";
+  } else if (!answered && !usedSteal && q.type === "single") {
+    status = "no_answer";
+    title = "SEM RESPOSTA";
+    subtitle = "Faltou o tempo.";
+  }
+
+  io.to(t.socketId).emit("team:resultOverlay", { status, title, subtitle });
+}
+
+
+   io.to(code).emit("presentation:revealResults", game.resultCache[qIndex]);
+
+    io.to(code).emit("team:showResults", {
+      type: q.type,
+      correctIndex: q.correctIndex,
+      correctNumber: q.correctNumber,
+      results
+    });
+  });
+
+  // --- PRÓXIMA PERGUNTA ---
+  socket.on("host:nextQuestion", ({ code }) => {
+  const game = games[code];
+  if (!game) return;
+
+game.phase = "between";
+io.to(code).emit("team:showHold", {
+  title: "RONDA",
+  subtitle: "A próxima pergunta vai começar…"
+});
+emitPhase(game);
+
+io.to(code).emit("presentation:nextScreen", {
+  nextIndex: game.currentQuestion + 1,           // próxima ronda (1-based)
+  total: game.questions.length
+});
+io.to(code).emit("team:prepareNextQuestion");
+});
+
+  // --- DESLIGAR ---
   socket.on("disconnect", () => {
     console.log("Disconnected:", socket.id);
   });
 });
 
+// ----------- RUN -----------
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log("Server running on port", PORT);

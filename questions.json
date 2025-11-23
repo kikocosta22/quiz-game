@@ -1,0 +1,94 @@
+[
+  {
+    "id": 1,
+    "type": "single",
+    "questionText": "Como se chama este utensilio?",
+    "questionMedia": {
+      "type": "video",
+      "url": "/media/sample-5s.mp4"
+    },
+    "options": [
+      { "type": "image", "value": "/media/head.png" },
+      { "type": "image", "value": "/media/logo.png" },
+      { "type": "image", "value": "/media/background.png" },
+      { "type": "image", "value": "/media/ronaldo.jpg" }
+    ],
+    "correctIndex": 0,
+    "explanation": {
+  "type": "video",
+  "value": "/media/example2.mp4"
+}
+  },
+   {
+    "id": 2,
+    "type": "single",
+    "questionText": "Como se chama este utensilio?",
+    "questionMedia": {
+      "type": "none",
+      "url": "/media/sample-5s.mp4"
+    },
+    "options": [
+      { "type": "image", "value": "/media/head.png" },
+      { "type": "image", "value": "/media/logo.png" },
+      { "type": "image", "value": "/media/background.png" },
+      { "type": "image", "value": "/media/ronaldo.jpg" }
+    ],
+    "correctIndex": 0,
+    "explanation": {
+  "type": "video",
+  "value": "/media/example2.mp4"
+}
+  },
+
+  {
+    "id": 3,
+    "type": "approximation",
+    "questionText": "Em que ano nasceu o Cristiano Ronaldo?",
+    "questionMedia": { "type": "none", "url": "" },
+    "correctNumber": 1985,
+    "explanation": {
+      "type": "text",
+      "value": "CR7 nasceu em 1985."
+    }
+  },
+  {
+    "id": 4,
+    "type": "single",
+    "questionText": "Como se chama este utensilio?",
+    "questionMedia": {
+      "type": "video",
+      "url": "/image/ronaldo.jpg"
+    },
+    "options": [
+      { "type": "text", "value": "Epa nao faças isso!" },
+      { "type": "text", "value": "Não vais começar com as tuas coisas!" },
+      { "type": "text", "value": "Isto é apertado para caralho..." },
+      { "type": "text", "value": "Tou fodido contigo..." }
+    ],
+    "correctIndex": 1,
+   "explanation": {
+  "type": "video",
+  "value": "/media/example2.mp4"
+}
+  },
+  {
+    "id": 5,
+    "type": "single",
+    "questionText": "Que cidade é esta?",
+    "questionMedia": {
+      "type": "image",
+      "url": "/media/porto.jpg"
+    },
+    "options": [
+      { "type": "text", "value": "Microscopio" },
+      { "type": "text", "value": "Lupa" },
+      { "type": "text", "value": "Nada" },
+      { "type": "text", "value": "Kylian Mbappé" }
+    ],
+    "correctIndex": 0,
+    "explanation": {
+  "type": "video",
+  "value": "/media/example1.mp4"
+}
+  }
+]

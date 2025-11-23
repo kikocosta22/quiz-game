@@ -1,12 +1,606 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Presentation</title>
+  <title>Apresentação - Quiz Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Luckiest+Guy&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --accent: #ffcc33;
+      --correct: #4ade80;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        overflow-y: hidden;
+        color:#fffbeb;
+  margin: 0;
+  font-family: "Bangers", sans-serif;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+
+  background: 
+    linear-gradient(rgba(255, 255, 255, 0.5), rgba(120, 120, 120, 0.9)),   /* overlay transparente */
+    url("/media/background.png");                       /* <-- tua imagem */
+  
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+    .stage {
+      width: 100%;
+
+      margin: 12px;
+      padding: 12px 18px 18px;
+      border-radius: 34px;
+      background: transparent;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stage-inner {
+  padding-bottom: 110px; /* ~altura total do timer */
+}
+
+    /* HEADER (logo + ranking) */
+    .top-bar {
+    
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+    }
+
+    .logo-img {
+      width: 360px;
+      height: 170px;
+      object-fit:scale-down;
+    
+
+    }
+
+    .game-title {
+      font-family: "Bungee Shade", system-ui, sans-serif;
+      font-size: 2.4rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #fffbeb;
+      text-shadow:
+        0 4px 0 #000,
+        0 0 30px rgba(0,0,0,0.9);
+      padding: 4px 12px;
+    }
+
+    .leaderboard-mini {
+      min-width: 300px;
+      max-width: 350px;
+      background: rgba(86, 86, 86, 0.8);
+      border-radius: 16px;
+      padding: 8px 10px;
+      border: 1px solid rgba(148,163,184,0.5);
+      
+    }
+
+    #leaderboardTitle {
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: .18em;
+      color: rgba(248,250,252,0.85);
+    }
+
+    #leaderboard {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+       color: rgba(248,250,252,0.85);
+    }
+
+    .lb-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 8px;
+      border-radius: 12px;
+      background: rgba(53, 52, 52, 0.8);
+      border: 1px solid rgba(148,163,184,0.5);
+      font-size: 1.15rem;
+    }
+
+    .lb-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .lb-rank {
+      width: 18px;
+      text-align: center;
+      opacity: .9;
+    }
+
+    .lb-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: rgba(30,64,175,0.6);
+    }
+
+    .lb-name {
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .lb-score {
+      font-weight: 600;
+    }
+
+    /* QUESTION AREA */
+
+    .question-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 4px 10px;
+      overflow-y: none; /* conteúdo pode scrollar, perfis ficam fixos em baixo */
+      margin-top: -50px;
+       justify-content: center;
+        align-items: center;
+      text-align: center;
+    }
+
+    #question-container {
+  
+      max-width: 960px;
+        justify-content: center;
+        align-items: center;
+      text-align: center;
+    }
+
+    #question-text {
+      font-size: 3.5rem;
+      font-weight: 400;
+      margin-bottom: 12px;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.9);
+    }
+
+    #media {
+      margin: 40px auto 16px;
+      max-width: 960px;
+    }
+
+    #media img,
+    #media video {
+      max-width: 100%;
+      max-height: 320px;
+      border-radius: 22px;
+      box-shadow: 0 18px 38px rgba(0,0,0,0.9);
+      display: block;
+      margin: 0 auto;
+    }
+
+    #explanation {
+      margin-top: 8px;
+      font-size: 0.95rem;
+      opacity: 0.95;
+    }
+
+    #answers-count {
+      margin-top: 50px;
+      font-size: 0.85rem;
+      opacity: .9;
+      text-align: center;
+      
+    }
+
+    #power-log {
+        font-family: "Bangers";
+      margin-top: 4px;
+      font-size: 0.9rem;
+      text-align: left;
+    }
+
+    /* Respostas em 2 colunas */
+    #optionsWrapper {
+      margin-top: 22px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px 18px;
+      justify-items: center;
+      
+    }
+
+    .option {
+      /* background: 
+        linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)),
+         url("/media/option.png");  */
+         
+         color:rgb(255, 255, 255);
+    background:linear-gradient(#b9813d, #ce9d48f4); 
+      padding: 20px 30px;
+      border-radius: 10px;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      box-shadow: 0 18px 36px rgba(0.7,0,0,0.5);
+      width: 100%;
+      text-align: center;
+      justify-content: center;
+    }
+
+    .option.correct {
+      border-color: var(--correct);
+      background: rgba(21,128,61,0.9);
+      box-shadow: 0 22px 44px rgba(22,163,74,0.5);
+    }
+
+    .option img,
+    .option video {
+      max-width: 80px;
+      max-height: 100%;
+      border-radius: 5px;
+    }
+
+    #between-questions {
+      font-size: 1.7rem;
+      margin-top: 40px;
+      text-align: center;
+      opacity: 0.9;
+    }
+
+    /* PLAYERS BAR */
+
+    /* fixa a barra de avatares ao fundo do ecrã */
+.players-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;               /* abaixo do timer (que está com z-index:1000) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-bottom: 3%;
+
+
+}
+
+
+
+/* em ecrãs pequenos, retira essa folga extra para não “comer” largura */
+@media (max-width: 900px) {
+  .players-bar {  }
+}
+
+    #answers-progress {
+      display: flex;
+      gap: 30px;
+      align-items: flex-end;
+      justify-content: center;
+      max-width: 100%;
+      overflow-x: auto;
+    
+     
+    }
+
+    .ap-team {
+         color:white;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.90rem;
+      min-width: 70px;
+    }
+.ap-avatar {
+    margin-top: 10%;
+    margin-bottom: 10%;
+  width: 56px;
+  height: 56px;
+  border-radius: 40%;
+  object-fit: cover;
+
+  
+  /* Base shadow (subtle dark glow) */
+  box-shadow: 0 0 16px rgba(0,0,0,0.9);
+  
+  /* Optional: thin base border if you want one all the time */
+  /* border: 2px solid transparent; */
+}
+.ap-team.pending {
+  border-radius: 50%;   /* or remove line entirely */
+  background: none;     /* ensure no background shows */
+}
+.ap-team.pending .ap-avatar {
+  outline: 3px solid #facc15;
+  outline-offset: 2px;
+  box-shadow:
+    0 0 4px 3px rgba(250,204,21,0.9); /* softer round glow */
+}
+
+.ap-team.answered .ap-avatar {
+  opacity: .4;
+  outline: none;
+  box-shadow: none;
+}
+
+    .ap-team.correct .ap-avatar {
+      border-color: #22c55e;
+      box-shadow: 0 0 18px rgba(34,197,94,0.95);
+      opacity: 1;
+    }
+
+    .ap-team.wrong .ap-avatar {
+      border-color: #f97373;
+      box-shadow: 0 0 18px rgba(239,68,68,0.95);
+      opacity: 1;
+    }
+
+    @media (max-width: 900px) {
+      .stage-inner {
+        height: auto;
+      }
+      .top-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      #question-text {
+        font-size: 1.8rem;
+      }
+      #optionsWrapper {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    
+    
+    
+    /* ——— Barra vertical fixa à esquerda ——— */
+#timerBarWrapper {
+  position: fixed;
+  left: 10px;   /* <-- antes estava sem 'px' */
+  top: 55%;
+  transform: translateY(-50%);
+  width: 180px;
+  z-index: 1000;
+  pointer-events: none;
+  padding-left: 10px;
+}
+
+.timerShell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ——— Label: agora pode ocupar várias linhas ——— */
+#timerLabel {
+  font-size: 0.9rem;
+  margin-top: 8px;
+  text-align: center;
+  color: white;
+  opacity: 0.9;
+  line-height: 1.25;
+  max-width: 160px;        /* espaço confortável para o texto */
+  white-space: normal;     /* permite quebrar linha */
+  word-break: break-word;  /* evita cortar para fora */
+  overflow: visible;       /* não esconder texto */
+}
+
+/* ——— Caixa vertical (mais comprida) ——— */
+#timerBarOuter {
+  width: 28px;             /* ligeiramente mais larga */
+  height: 60vh;            /* ANTES ~260px → agora 70% da altura do ecrã */
+  max-height: 780px;       /* limite superior opcional */
+  min-height: 360px;       /* limite inferior opcional */
+  border-radius: 16px;
+  background: rgba(0,0,0,0.45);
+  border: 1px solid rgba(255,255,255,0.2);
+  overflow: hidden;
+  position: relative;
+}
+
+/* ——— “Sumo” da barra em tons de amarelo torrado ——— */
+#timerBarInner {
+  position: absolute;
+  left: 0;
+  bottom: 0;                 /* cresce de baixo para cima */
+  height: 100%;
+  width: 100%;
+  transform-origin: bottom center;
+  transform: scaleY(1);
+  transition: transform 0.25s linear;
+
+  /* Paleta: amarelos quentes/torrados */
+  background:
+    linear-gradient(
+      to top,
+      #8c0000 0%,    /* âmbar tostado escuro na base */
+      #c38e00 35%,   /* mostarda torrada */
+      #f4b400 70%,   /* dourado (estilo Google Amber) */
+      #ffe08a 100%   /* amarelo claro no topo */
+    ),
+    repeating-linear-gradient(
+      45deg,
+      rgba(255,255,255,0.30) 0 8px,
+      transparent 8px 16px
+    );
+
+  animation: timerStripes 2.1s linear infinite;
+}
+
+#timerBarInner .shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(255,255,255,0.18), rgba(255,255,255,0));
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* ——— Efeitos ——— */
+#timerBarOuter.panic {
+  animation: timerShake 0.25s linear infinite;
+  box-shadow: 0 0 18px rgba(218, 43, 12, 0.8); /* brilho âmbar */
+}
+
+#timerBarOuter.done {
+  animation: timerPulse 0.9s ease-out 1;
+}
+
+@keyframes timerStripes {
+  from { background-position: 0 0, 0 0; }
+  to   { background-position: 0 0, 0 20px; }
+}
+@keyframes timerShake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-1px); }
+  50% { transform: translateX(0); }
+  75% { transform: translateX(1px); }
+  100% { transform: translateX(0); }
+}
+@keyframes timerPulse {
+  0%   { box-shadow: 0 0 0 rgba(244, 180, 0, 0); }
+  40%  { box-shadow: 0 0 28px rgba(244, 180, 0, 0.95); }
+  100% { box-shadow: 0 0 0 rgba(244, 180, 0, 0); }
+}
+
+/* keyframes */
+@keyframes stripes {
+  from { background-position: 0 0, 0 0; }
+  to   { background-position: 0 0, 20px 20px; }
+}
+@keyframes bob {
+  0%,100% { transform: translate(-50%, -50%) }
+  50%     { transform: translate(-50%, -55%) }
+}
+@keyframes boom {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.2); filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
+  40%  { opacity: 1; transform: translate(-50%, -50%) scale(1.2); filter: drop-shadow(0 0 20px rgba(255,255,255,0.9)); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
+}
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-1px); }
+  50% { transform: translateX(0); }
+  75% { transform: translateX(1px); }
+  100% { transform: translateX(0); }
+}
+.ap-team.blocked .ap-avatar {
+  border-color: #f97373;
+  box-shadow: 0 0 10px rgba(248,113,113,0.9);
+}
+.ap-team.blocked::after {
+  content: "⛔";
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+/* ROUND BANNER */
+.round-banner {
+  display: inline-block;
+  padding: 40px 50px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 50% 0, #fde68a, #facc15);
+  color: #111827;
+  font-weight: 900;
+  font-size: 6rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  border: 3px solid rgba(0,0,0,0.6);
+  animation: bellPop 900ms ease-out both, glowPulse 2.2s ease-in-out infinite;
+}
+
+.round-sub {
+  display: block;
+  margin-top: 8px;
+  font-size: 1rem;
+  letter-spacing: .2em;
+  color: rgba(255,255,255,0.8);
+  text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+}
+
+@keyframes bellPop {
+  0%   { transform: scale(0.6) rotate(-3deg); opacity: 0; }
+  40%  { transform: scale(1.08) rotate(2deg); opacity: 1; }
+  70%  { transform: scale(0.98) rotate(-1deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+@keyframes glowPulse {
+  0%,100% { box-shadow: 0 18px 36px rgba(0,0,0,0.6); }
+  50%     { box-shadow: 0 24px 60px rgba(0,0,0,0.9); }
+}
+
+
+  </style>
 </head>
 <body>
-  <h1>Apresentação</h1>
-  <h2 id="status">À espera do host…</h2>
+  <div class="stage">
+    <div class="stage-inner">
+      <div class="top-bar">
+        <div class="logo-area">
+          <!-- PODES TROCAR O SRC POR UMA IMAGEM TUA -->
+          <img class="logo-img" id="gameLogoImg" src="/media/logo.png" alt="QuizzMogadouro25" />
+        
+        </div>
+        
+
+
+<!-- (optional) tiny sound -->
+<audio id="boomSfx" src="/media/sfx/boom.mp3" preload="auto"></audio>
+
+        <div class="leaderboard-mini">
+          <div id="leaderboardTitle">Ranking</div>
+          <div id="leaderboard"></div>
+        </div>
+      </div>
+
+      <div class="question-area">
+        <div id="question-container"></div>
+        <div id="answers-count"></div>
+        <div id="power-log"></div>
+        <div id="explanation"></div>
+        <div id="between-questions" style="display:none;margin-top:10%;">A aguardar próxima pergunta…</div>
+      </div>
+
+      <div class="players-bar">
+        <div id="answers-progress"></div>
+      </div>
+
+     <!-- TIMER VERTICAL ESQUERDA -->
+<div id="timerBarWrapper" style="display:none;">
+  <div class="timerShell">
+    <div id="timerBarOuter">
+      <div id="timerBarInner"><span class="shine"></span></div>
+    </div>
+    <div id="timerLabel"></div>
+  </div>
+</div>
+
+    </div>
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/presentation.js"></script>

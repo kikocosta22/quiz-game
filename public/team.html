@@ -1,20 +1,489 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt">
 <head>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Luckiest+Guy&display=swap" rel="stylesheet">
   <meta charset="UTF-8" />
-  <title>Team</title>
+  <title>Equipa - Quiz Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg-gradient:  linear-gradient(rgba(255, 255, 255, 0.5), rgba(120, 120, 120, 0.9)),   /* overlay transparente */
+    url("/media/background.png");  
+      --accent: #ffca28;
+      --accent-strong: #ff9800;
+      --danger: #ff5252;
+      --success: #66bb6a;
+      --card-bg: rgba(0, 0, 0, 0.435);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Bangers', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-weight: 200;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: var(--bg-gradient);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 480px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 0 0 8px;
+      letter-spacing: .1em;
+      font-size: 1rem;
+      text-transform: uppercase;
+      opacity: .8;
+    }
+
+    .card {
+background: rgb(49, 49, 49, 0.8);
+      border-radius: 18px;
+      padding: 14px 16px;
+  
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    #joinForm .field {
+      margin-bottom: 10px;
+
+    }
+
+    label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: .8rem;
+      opacity: .8;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: none;
+      font-size: .95rem;
+      margin-bottom: 8px;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      font-size: .8rem;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 16px;
+      font-size: .95rem;
+      font-weight: 600;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+      color: #000;
+      background: var(--accent);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+      cursor: pointer;
+      transition: transform .1s ease, box-shadow .1s ease, background .2s ease;
+      width: 100%;
+    }
+
+    button:active {
+      transform: translateY(1px) scale(0.99);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.7);
+      background: var(--accent-strong);
+    }
+
+    button:disabled {
+      opacity: .5;
+      box-shadow: none;
+      cursor: default;
+      transform: none;
+    }
+
+    .avatar-preview {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      margin-top: 6px;
+      border: 2px solid rgba(255,255,255,0.5);
+    }
+
+    #teamAreaHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+  #teamArea {
+background: rgb(49, 49, 49, 0.8);
+}
+
+
+    #teamInfo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #teamHeaderName {
+      font-size: 1.6rem;
+      font-weight: 400;
+    }
+
+    #teamCode {
+      font-size: 1rem;
+      opacity: .8;
+    }
+
+    #scoreBadge {
+      background: rgba(255,255,255,0.1);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 1.2rem;
+    }
+
+    #statusText {
+      text-align: center;
+      font-size: 0.9rem;
+
+      margin-bottom: 8px;
+      min-height: 1.5em;
+    }
+
+    #powersContainer {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .power-btn {
+      flex: 1;
+      border-radius: 15px;
+      padding: 10px 10px;
+      font-size: 0.9rem;
+      text-align: center;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.18);
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .power-btn span.label {
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .power-btn span.state {
+      font-size: 0.65rem;
+      opacity: 0.8;
+    }
+
+    .power-btn.used {
+      background: rgba(255,255,255,0.08);
+      border-style: dashed;
+      opacity: 0.5;
+      cursor: default;
+    }
+    #optionsContainer {
+      margin-top: 6%;
+    }
+    #optionsContainer button {
+      justify-content: center;
+      text-align: center;
+      font-family: 'Bangers', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-weight: 300;
+      font-size: large;
+      background:linear-gradient(#b9813d, #ce9d48f4); 
+      color: #fff;
+      text-align: left;
+      padding: 20px 14px;
+      border-radius: 14px;
+      margin-top: 8px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #optionsContainer button.correct {
+      background: rgba(76, 175, 80, 0.5);
+      border: 1px solid var(--success);
+    }
+
+    #optionsContainer button.selected {
+      outline: 2px solid var(--accent);
+    }
+
+    #optionsContainer img,
+    #optionsContainer video {
+      max-width: 48px;
+      max-height: 48px;
+      border-radius: 8px;
+    }
+
+    /* Overlay genérico */
+    #overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    #overlayBackdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+    }
+
+    #overlayDialog {
+      position: relative;
+      max-width: 320px;
+      width: 90%;
+      background: rgba(0,0,0,0.9);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.8);
+      border: 1px solid rgba(255,255,255,0.12);
+      z-index: 51;
+    }
+
+    #overlayDialog h2 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    #overlayDialog p {
+      margin: 0 0 12px;
+      font-size: .9rem;
+      opacity: .9;
+    }
+
+    #overlayButtons {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    #overlayButtons button {
+      flex: 1;
+      padding: 10px;
+      font-size: .85rem;
+    }
+
+    #overlayList {
+      max-height: 220px;
+      overflow-y: auto;
+      margin-top: 8px;
+    }
+
+    .overlay-team-btn {
+      width: 100%;
+      border-radius: 12px;
+      padding: 8px 10px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .overlay-team-btn img {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: rgba(0,0,0,0.4);
+    }
+
+     #stateOverlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 60;
+    }
+
+    #stateOverlayBackdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(5px);
+    }
+
+    #stateOverlayDialog {
+      position: relative;
+      max-width: 320px;
+      width: 90%;
+      background: rgba(0,0,0,0.95);
+      border-radius: 22px;
+      padding: 20px;
+      box-shadow: 0 22px 44px rgba(0,0,0,0.95);
+      border: 1px solid rgba(255,255,255,0.4);
+      text-align: center;
+    }
+
+    #stateOverlayTitle {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    #stateOverlaySubtitle {
+      font-size: .95rem;
+      opacity: .9;
+    }
+    .top-bar {
+    
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+   
+    }
+
+    .logo-img {
+      width: 360px;
+      height: 170px;
+      object-fit:scale-down;
+
+
+    }
+
+     .icon-img {
+      width: 75px;
+      height: 75px;
+      object-fit:scale-down;
+
+
+    }
+
+  </style>
 </head>
 <body>
-  <h1>Team Page</h1>
+  <div class="app">
+   <div class="top-bar">
+        <div class="logo-area">
+          <!-- PODES TROCAR O SRC POR UMA IMAGEM TUA -->
+          <img class="logo-img" id="gameLogoImg" src="/media/logo.png" alt="QuizzMogadouro25" />
+        
+        </div>
+      </div>
 
-  <input id="nameInput" placeholder="Nome da equipa">
-  <input id="avatarInput" placeholder="😎">
+    <div id="joinForm" class="card">
+      <div class="field">
+        <h3 for="gameCodeInput">Código do jogo</h3>
+        <input id="gameCodeInput" type="text" placeholder="Ex: CBF6" />
+      </div>
 
-  <button id="joinBtn">Entrar</button>
+      <div class="field">
+        <label for="teamNameInput">Nome da equipa</label>
+        <input id="teamNameInput" type="text" placeholder="Os Campeões" />
+      </div>
 
-  <div id="content" style="display:none;">
-    <h2 id="teamHeader"></h2>
-    <p>A aguardar início...</p>
+      <div class="field">
+        <label for="avatarFile">Foto da equipa</label>
+        <input id="avatarFile" type="file" accept="image/*" />
+        <img id="avatarPreview" class="avatar-preview" style="display:none;" />
+      </div>
+
+      <button id="joinBtn">Entrar no jogo</button>
+    </div>
+
+    <div id="teamArea" class="card" style="display:none; height:700px;">
+      <div id="teamAreaHeader">
+        <div id="teamInfo">
+          <img id="teamAvatarSmall" class="avatar-preview" style="width:60px;height:60px;display:none;" />
+          <div>
+            <div id="teamHeaderName"></div>
+            <div id="teamCode"></div>
+          </div>
+        </div>
+        <div id="scoreBadge">Pontos: <span id="scoreValue">0</span></div>
+      </div>
+
+      <div id="statusText"></div>
+
+      <div id="powersContainer">
+        <div class="power-btn" data-power="steal">
+          <!-- <span style="font-size: 30px;">🕵️</span> -->
+           <img class="icon-img" id="icons" src="/media/steal.png" alt="QuizzMogadouro25" />
+          <span class="label">Roubar</span>
+          <span class="state">Disponível</span>
+        </div>
+        <div class="power-btn" data-power="fifty">
+          <img class="icon-img" id="icons" src="/media/5050.png" alt="QuizzMogadouro25" />
+          <span class="label">50:50</span>
+          <span class="state">Disponível</span>
+        </div>
+        <div class="power-btn" data-power="block">
+          <img class="icon-img" id="icons" src="/media/stop.png" alt="QuizzMogadouro25" />
+          <span class="label">Bloquear</span>
+          <span class="state">Disponível</span>
+        </div>
+      </div>
+
+      <div id="optionsContainer"></div>
+    </div>
+
+    <!-- Overlay genérico para confirmações e escolha de equipa -->
+      <div id="overlay">
+      <div id="overlayBackdrop"></div>
+      <div id="overlayDialog">
+        <div id="overlayContent"></div>
+      </div>
+    </div>
+
+    <!-- Overlay de estado (bloqueado / respostas fechadas / resposta registada) -->
+    <div id="stateOverlay">
+      <div id="stateOverlayBackdrop"></div>
+      <div id="stateOverlayDialog">
+        <div id="stateOverlayTitle"></div>
+        <div id="stateOverlaySubtitle"></div>
+      </div>
+    </div>
+  </div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
