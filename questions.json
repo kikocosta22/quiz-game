@@ -8,10 +8,10 @@
       "url": "/media/sample-5s.mp4"
     },
     "options": [
-      { "type": "image", "value": "/media/head.png" },
-      { "type": "image", "value": "/media/logo.png" },
-      { "type": "image", "value": "/media/background.png" },
-      { "type": "image", "value": "/media/ronaldo.jpg" }
+      { "type": "text", "value": "Microscopio" },
+      { "type": "text", "value": "Batedeira" },
+      { "type": "text", "value": "Triuradora" },
+      { "type": "text", "value": "Garfo" }
     ],
     "correctIndex": 0,
     "explanation": {
@@ -56,8 +56,8 @@
     "type": "single",
     "questionText": "Como se chama este utensilio?",
     "questionMedia": {
-      "type": "video",
-      "url": "/image/ronaldo.jpg"
+      "type": "image",
+      "url": "/media/ronaldo.jpg"
     },
     "options": [
       { "type": "text", "value": "Epa nao faças isso!" },
