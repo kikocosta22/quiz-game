@@ -33,6 +33,49 @@ function updateLinks() {
     <p><strong>QR Apresentação:</strong> <code>${presUrl}</code></p>
   `;
 }
+function applyPhaseState(phase) {
+  // lobby: só podes criar/começar jogo
+  if (phase === "lobby") {
+    startGameBtn.disabled = false;
+    showQuestionBtn.disabled = true;
+    showAnswersBtn.disabled = true;
+    closeAnswersBtn.disabled = true;
+    revealAnswerBtn.disabled = true;
+    nextQuestionBtn.disabled = true;
+    return;
+  }
+
+  // jogo já em curso -> não se pode voltar a carregar em "Começar jogo"
+  startGameBtn.disabled = true;
+
+  // reset base
+  showQuestionBtn.disabled = true;
+  showAnswersBtn.disabled = true;
+  closeAnswersBtn.disabled = true;
+  revealAnswerBtn.disabled = true;
+  nextQuestionBtn.disabled = true;
+
+  switch (phase) {
+    case "between":
+      showQuestionBtn.disabled = false;
+      break;
+    case "question":
+      showAnswersBtn.disabled = false;
+      break;
+    case "answers":
+      closeAnswersBtn.disabled = false;
+      break;
+    case "locked":
+      revealAnswerBtn.disabled = false;
+      break;
+    case "results":
+      nextQuestionBtn.disabled = false;
+      break;
+    default:
+      // nada
+      break;
+  }
+}
 
 createGameBtn.addEventListener("click", () => {
   socket.emit("host:createGame");
@@ -91,9 +134,14 @@ socket.on("host:joinedAsHost", (game) => {
   gameCodeDisplay.textContent = `Código: ${code}`;
   updateLinks();
   hostStatus.textContent = "Host ligado ao jogo.";
-  startGameBtn.disabled = game.status === "lobby" ? false : true;
-  showQuestionBtn.disabled = game.status === "started" ? false : true;
+
+  if (game.status === "lobby") {
+    applyPhaseState("lobby");
+  } else {
+    applyPhaseState(game.phase || "between");
+  }
 });
+
 
 socket.on("game:started", () => {
   hostStatus.textContent = "Jogo começou. Mostra a primeira pergunta.";
@@ -168,13 +216,9 @@ socket.on("game:teamsUpdated", (teams) => {
 });
 
 socket.on("host:phaseState", ({ phase, index, total }) => {
-  // ativa/desativa botões consoante a fase
-  // ex.: entre perguntas → só “Começar pergunta”
-  // phase === "question" → tens “Mostrar respostas”
-  // phase === "answers" → podes “Fechar respostas”
-  // phase === "locked" → podes “Revelar resposta”
-  // phase === "results" → “Próxima pergunta”
+  applyPhaseState(phase);
 });
+
 
 
 socket.on("joinError", (msg) => {

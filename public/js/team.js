@@ -57,7 +57,7 @@ let usedStealThisQuestion = false;
 
 // lista de equipas conhecida (para seleccionar alvo)
 let knownTeams = [];
-
+let currentBlockedTeamIds = [];
 // helpers overlay
 function closeOverlay() {
   overlay.style.display = "none";
@@ -125,7 +125,7 @@ function showTeamChooser(titleText, descriptionText, onChoose) {
   const p = document.createElement("p");
   p.textContent = descriptionText;
 
-  const listDiv = document.createElement("div");
+    const listDiv = document.createElement("div");
   listDiv.id = "overlayList";
 
   const others = knownTeams.filter((t) => t.id !== teamId);
@@ -148,9 +148,19 @@ function showTeamChooser(titleText, descriptionText, onChoose) {
         btn.appendChild(img);
       }
 
-      const span = document.createElement("span");
-      span.textContent = t.name;
-      btn.appendChild(span);
+      // nome da equipa
+      const nameSpan = document.createElement("span");
+      nameSpan.className = "overlay-team-name";
+      nameSpan.textContent = t.name;
+      btn.appendChild(nameSpan);
+
+      // se estiver bloqueada nesta pergunta, mostra badge
+      if (currentBlockedTeamIds.includes(t.id)) {
+        const statusSpan = document.createElement("span");
+        statusSpan.className = "overlay-team-status";
+        statusSpan.textContent = "BLOQUEADO";
+        btn.appendChild(statusSpan);
+      }
 
       listDiv.appendChild(btn);
     });
@@ -186,7 +196,7 @@ if (avatarFileInput) {
       avatarPreview.src = "";
       return;
     }
-    const MAX_SIZE_BYTES = 1 * 1024 * 1024;
+    const MAX_SIZE_BYTES = 6 * 1024 * 1024;
     if (file.size > MAX_SIZE_BYTES) {
       alert("A foto é demasiado grande. Escolhe uma imagem até 1MB.");
       avatarFileInput.value = "";
@@ -218,7 +228,7 @@ if (joinBtn) {
 
     const file = avatarFileInput?.files?.[0];
     if (file) {
-      const MAX_SIZE_BYTES = 1 * 1024 * 1024;
+      const MAX_SIZE_BYTES = 6 * 1024 * 1024;
       if (file.size > MAX_SIZE_BYTES) {
         alert("A foto é demasiado grande. Escolhe uma imagem até 1MB.");
         return;
@@ -264,9 +274,15 @@ socket.on("game:teamsUpdated", (teams) => {
   knownTeams = teams || [];
 });
 
+// receber lista de equipas bloqueadas na pergunta atual
+socket.on("team:blockedTeams", ({ blockedTeamIds }) => {
+  currentBlockedTeamIds = blockedTeamIds || [];
+});
+
 socket.on("joinError", (msg) => {
   alert("Erro: " + msg);
 });
+
 
 socket.on("team:joined", (team) => {
   console.log("team:joined", team);
@@ -317,28 +333,49 @@ function renderPowers() {
     const power = btn.dataset.power;
     const used = powersUsed[power];
     const stateSpan = btn.querySelector(".state");
+
+    // reset estado base
+    btn.classList.remove("used", "disabled-for-type");
+    btn.disabled = false;
+
     if (used) {
       btn.classList.add("used");
+      btn.disabled = true;
       if (stateSpan) stateSpan.textContent = "Usado";
     } else {
-      btn.classList.remove("used");
       if (stateSpan) stateSpan.textContent = "Disponível";
+    }
+
+    // em perguntas de aproximação o 50:50 fica bloqueado
+    if (currentQuestionType === "approximation" && power === "fifty" && !used) {
+      btn.classList.add("disabled-for-type");
+      btn.disabled = true;
+      if (stateSpan) stateSpan.textContent = "Indisp. nesta pergunta";
     }
   });
 }
 
+
 powerButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
     if (!gameCode || !teamId) return;
+
     const power = btn.dataset.power;
+
+    // 50:50 indisponível em perguntas de aproximação
+    if (currentQuestionType === "approximation" && power === "fifty") {
+      return;
+    }
+
     if (powersUsed[power]) {
       if (statusText) statusText.textContent = "Já usaste esse poder nesta partida.";
       return;
     }
     if (answersLocked) {
-  showStateOverlay("AGUARDA", "Ainda não podes responder.");
-  return;
-}
+      showStateOverlay("AGUARDA", "Ainda não podes responder.");
+      return;
+    }
+
 
     if (answersLocked && power === "steal") {
       if (statusText) statusText.textContent = "Já jogaste nesta pergunta.";
@@ -483,6 +520,7 @@ socket.on("team:prepareNextQuestion", () => {
   currentQuestionType = null;
   isBlockedThisQuestion = false;
   usedStealThisQuestion = false;
+  
   if (optionsContainer) optionsContainer.innerHTML = "";
   if (statusText) statusText.textContent = "A aguardar nova pergunta…";
 });
@@ -498,6 +536,7 @@ socket.on("team:showOptions", ({ index, type, options }) => {
     statusText.textContent = " Responde agora!";
   }
   currentQuestionType = type;
+  renderPowers();
 
   if (type === "single") {
     options.forEach((opt, i) => {
@@ -633,6 +672,7 @@ socket.on("team:showResults", ({ type, correctIndex, correctNumber, results }) =
   const myResult = results ? results[teamId] : null;
 
   if (type === "single") {
+    // marcar resposta correta
     if (optionsContainer && typeof correctIndex === "number") {
       const btns = optionsContainer.querySelectorAll("button");
       btns.forEach((btn) => {
@@ -641,27 +681,55 @@ socket.on("team:showResults", ({ type, correctIndex, correctNumber, results }) =
           btn.classList.add("correct");
         }
       });
+
+      // se escolhi uma opção errada, marcar a minha a vermelho com moldura amarela
+      const selectedBtn = Array.from(btns).find((b) =>
+        b.classList.contains("selected")
+      );
+      if (selectedBtn && typeof correctIndex === "number") {
+        const idxSel = parseInt(selectedBtn.dataset.index, 10);
+        if (!Number.isNaN(idxSel) && idxSel !== correctIndex) {
+          selectedBtn.classList.add("wrong");
+        }
+      }
     }
 
+    // mensagem quando foi bloqueado → ignora se acertava ou falhava
+    if (isBlockedThisQuestion) {
+      statusText.textContent = "Foste bloqueado nesta pergunta.";
+      return;
+    }
+
+    // acertou (normal ou via steal)
     if (myResult && (myResult.correct || myResult.correctViaSteal)) {
       if (myResult.correctViaSteal) {
         statusText.textContent = "🕵️ Acertaste usando o poder de roubar!";
       } else {
         statusText.textContent = "Acertaste! 🎉";
       }
-    } else {
-      statusText.textContent = "Falhaste!";
+      return;
     }
+
+    // não respondeu (nem usou steal) → texto diferente
+    if (!answeredThisQuestion && !usedStealThisQuestion) {
+      statusText.textContent = "Sem resposta (acabou o tempo).";
+      return;
+    }
+
+    // respondeu mas errou
+    statusText.textContent = "Falhaste!";
   }
 
   if (type === "approximation") {
     if (myResult) {
       statusText.textContent = `A tua resposta: ${myResult.answer} | Distância: ${myResult.distance}`;
     } else {
-      statusText.textContent = "Não respondeste a esta pergunta.";
+      // não enviou palpite
+      statusText.textContent = "Sem resposta (acabou o tempo).";
     }
   }
 });
+
 
 socket.on("team:openAnswerWindow", () => {
   hideStateOverlay();

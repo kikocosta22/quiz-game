@@ -25,14 +25,108 @@ const betweenQuestionsDiv = document.getElementById("between-questions");
 const leaderboardDiv = document.getElementById("leaderboard");
 const answersProgressDiv = document.getElementById("answers-progress");
 const powerLogDiv = document.getElementById("power-log");
-
-
-
-
+const lobbyInstructionsDiv = document.getElementById("lobby-instructions");
 const timerBarWrapper = document.getElementById("timerBarWrapper");
 const timerBarInner   = document.getElementById("timerBarInner");
 const timerLabel      = document.getElementById("timerLabel");
 const timerBarOuter   = document.getElementById("timerBarOuter");
+const timeUpBanner    = document.getElementById("timeUpBanner");
+
+const lobbyQrDiv = document.getElementById("lobby-qr");
+const lobbyQrUrlSpan = document.getElementById("lobby-qr-url");
+
+let lobbyQrInstance = null;
+
+function renderLobbyQr() {
+  if (!code || !lobbyQrDiv || typeof QRCode === "undefined") return;
+
+  const teamUrl = `${window.location.origin}/team.html?code=${code}`;
+  // mostra o link também por texto, sem o http
+  if (lobbyQrUrlSpan) {
+    lobbyQrUrlSpan.textContent = teamUrl.replace(/^https?:\/\//, "");
+  }
+
+  if (!lobbyQrInstance) {
+    lobbyQrInstance = new QRCode(lobbyQrDiv, {
+      text: teamUrl,
+      width: 160,
+      height: 160,
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  } else {
+    lobbyQrInstance.clear();
+    lobbyQrInstance.makeCode(teamUrl);
+  }
+}
+
+
+const bgMusicLobby = document.getElementById("bgMusicLobby");
+const bgMusicGame  = document.getElementById("bgMusicGame");
+const timeUpSfx    = document.getElementById("timeUpSfx");
+const joinSfx      = document.getElementById("teamJoinSfx");
+const blockSfx     = document.getElementById("blockSfx");
+
+let lobbyMusicStarted = false;
+let gameMusicStarted  = false;
+
+// volumes (AJUSTA AQUI)
+if (bgMusicLobby) bgMusicLobby.volume = 0.15;  // música de fundo baixinha no lobby
+if (bgMusicGame)  bgMusicGame.volume  = 0.15;  // música de fundo baixinha no jogo
+if (timeUpSfx)    timeUpSfx.volume    = 1.0;   // time up bem audível
+if (joinSfx)      joinSfx.volume      = 0.9;   // entrada de equipa
+if (blockSfx)     blockSfx.volume     = 1.0;   // bloqueio forte
+
+function playLobbyMusic() {
+  if (!bgMusicLobby || lobbyMusicStarted) return;
+
+  // se por acaso a música do jogo estiver a tocar, pará-la
+  stopGameMusic();
+
+  const p = bgMusicLobby.play();
+  if (p && typeof p.then === "function") {
+    p.then(() => {
+      lobbyMusicStarted = true;
+    }).catch((err) => {
+      console.warn("bgMusicLobby play blocked:", err);
+    });
+  } else {
+    lobbyMusicStarted = true;
+  }
+}
+
+function stopLobbyMusic() {
+  if (!bgMusicLobby) return;
+  bgMusicLobby.pause();
+  bgMusicLobby.currentTime = 0;
+  lobbyMusicStarted = false;
+}
+
+function playGameMusic() {
+  if (!bgMusicGame || gameMusicStarted) return;
+
+  // se a música do lobby estiver a tocar, pará-la
+  stopLobbyMusic();
+
+  const p = bgMusicGame.play();
+  if (p && typeof p.then === "function") {
+    p.then(() => {
+      gameMusicStarted = true;
+    }).catch((err) => {
+      console.warn("bgMusicGame play blocked:", err);
+    });
+  } else {
+    gameMusicStarted = true;
+  }
+}
+
+function stopGameMusic() {
+  if (!bgMusicGame) return;
+  bgMusicGame.pause();
+  bgMusicGame.currentTime = 0;
+  gameMusicStarted = false;
+}
+
+
 
 
 // estado
@@ -48,6 +142,8 @@ let answerTimeLeft = 0;
 let lastQuestionTimeLimit = 60; // default em segundos
 let lastBlockedTeamIds = [];
 let totalQuestions = 60; // default; será atualizado
+let joinHighlightIds = new Set();
+
 
 function clearAnswerTimer() {
   if (answerTimer) {
@@ -59,7 +155,11 @@ function clearAnswerTimer() {
     timerBarOuter.classList.remove("panic");
     timerBarOuter.classList.remove("done");
   }
+  if (timeUpBanner) {
+    timeUpBanner.style.display = "none";
+  }
 }
+
 
 function updateTimerUI() {
   if (!timerBarWrapper || !timerBarInner || !timerLabel) return;
@@ -76,10 +176,9 @@ timerBarInner.style.transform = `scaleY(${ratio})`;
   } else {
     timerBarOuter?.classList.remove("panic");
   }
-
   timerLabel.textContent = answerTimeLeft > 0
     ? `${answerTimeLeft} seg`
-    : "⏰ Tempo!";
+    : "";
 }
 
 function startAnswerTimer(seconds, gameCode) {
@@ -90,16 +189,39 @@ function startAnswerTimer(seconds, gameCode) {
   answerTimeLeft = seconds;
   updateTimerUI();
 
-  answerTimer = setInterval(() => {
+   answerTimer = setInterval(() => {
     answerTimeLeft -= 1;
+
     if (answerTimeLeft <= 0) {
       answerTimeLeft = 0;
       updateTimerUI();
       clearInterval(answerTimer);
       answerTimer = null;
 
-      // pequeno efeito final
-      timerBarOuter?.classList.add("done");
+      // pequeno efeito final na barra
+      if (timerBarOuter) {
+        timerBarOuter.classList.add("done");
+      }
+
+      // mostrar banner TIME'S UP
+      if (timeUpBanner) {
+        timeUpBanner.style.display = "flex";
+
+        // esconder depois de ~3 segundos
+        setTimeout(() => {
+          if (timeUpBanner) timeUpBanner.style.display = "none";
+        }, 3000);
+      }
+
+      // tocar som de "tempo!"
+      if (timeUpSfx) {
+        try {
+          timeUpSfx.currentTime = 0;
+          timeUpSfx.play();
+        } catch (e) {
+          console.warn("timeUpSfx play blocked:", e);
+        }
+      }
 
       // fecha respostas como já fazias
       socket.emit("host:forceCloseAnswers", { code: gameCode });
@@ -110,11 +232,25 @@ function startAnswerTimer(seconds, gameCode) {
 }
 
 
-
 if (code) {
   console.log("Presentation joining game code:", code);
+  renderLobbyQr(); // gera o QR com o código atual
   socket.emit("joinGame", { code, role: "presentation" });
 }
+window.addEventListener(
+  "click",
+  () => {
+    // o browser só deixa tocar áudio depois de 1 interação
+    // se estivermos no lobby → música do lobby
+    // se o jogo já estiver a correr → música do jogo
+    if (currentPhase === "idle") {
+      playLobbyMusic();
+    } else {
+      playGameMusic();
+    }
+  },
+  { once: true }
+);
 
 socket.on("joinError", (msg) => {
   console.error("joinError (presentation):", msg);
@@ -131,12 +267,36 @@ socket.on("presentation:connected", (game) => {
     game.currentQuestion
   );
 });
+
 // Sempre que o servidor emitir a lista de equipas
-socket.on("host:teamsUpdated", (teams) => {
-  // teams é um array [{id,name,avatar,score?...}]
-  lastKnownTeams = Array.isArray(teams) ? teams : [];
+socket.on("game:teamsUpdated", (teams) => {
+  const arr = Array.isArray(teams) ? teams : [];
+
+  // ids que já existiam antes
+  const prevIds = new Set((lastKnownTeams || []).map(t => t.id));
+
+  // ids de equipas novas
+  const newIds = arr
+    .map(t => t.id)
+    .filter(id => !prevIds.has(id));
+
+  lastKnownTeams = arr;
   teamsById = {};
   lastKnownTeams.forEach(t => { teamsById[t.id] = t; });
+
+  // guardar para animação (apenas próximo render)
+  joinHighlightIds = new Set(newIds);
+
+  // som de entrada de equipa (apenas no lobby / ecrã inicial)
+  if (currentPhase === "idle" && newIds.length && joinSfx) {
+    try {
+      joinSfx.currentTime = 0;
+      joinSfx.play();
+    } catch (e) {
+      console.warn("joinSfx bloqueado pelo browser:", e);
+    }
+  }
+
   renderAnswersProgress();
 });
 
@@ -151,22 +311,57 @@ socket.on("presentation:connected", (game) => {
 });
 
 
+// ---------- ECRÃ DE LOBBY / INSTRUÇÕES ----------
+socket.on("presentation:showLobby", () => {
+  console.log("presentation:showLobby");
+  currentPhase = "idle";
+
+  // limpa conteúdos de pergunta/resultados
+  questionContainer.innerHTML = "";
+  answersCountDiv.textContent = "";
+  explanationDiv.innerHTML = "";
+  powerLogDiv.innerHTML = "";
+  lastAnsweredTeamIds = [];
+
+  // esconde banner de rondas
+  if (betweenQuestionsDiv) {
+    betweenQuestionsDiv.style.display = "none";
+  }
+
+  // mostra imagem de instruções
+  if (lobbyInstructionsDiv) {
+    lobbyInstructionsDiv.style.display = "flex";
+  }
+
+  // música de fundo do lobby
+  playLobbyMusic();
+
+  renderAnswersProgress();
+});
+
+
 // ---------- MOSTRAR PERGUNTA ----------
 socket.on("presentation:showQuestion", ({ index, total, question }) => {
   console.log("presentation:showQuestion -> index:", index, "question:", question);
-  
-  totalQuestions = total ?? totalQuestions;
+     playGameMusic();
+    if (lobbyInstructionsDiv) {
+    lobbyInstructionsDiv.style.display = "none";
+  }
+    totalQuestions = total ?? totalQuestions;
   currentPhase = "question";
   lastResults = null;
   lastQuestionType = question?.type || null;
 
-  betweenQuestionsDiv.style.display = "none";
+ betweenQuestionsDiv.style.display = "none";
   answersCountDiv.textContent = "";
   explanationDiv.innerHTML = "";
   powerLogDiv.innerHTML = "";
+  powerLogDiv.style.display = "none";
+  powerLogDiv.classList.remove("stamp-anim");
   questionContainer.innerHTML = "";
   lastAnsweredTeamIds = [];
-
+  lastBlockedTeamIds = [];
+  // limpar estados visuais dos avatares
   renderAnswersProgress();
 
   if (!question) {
@@ -180,12 +375,14 @@ socket.on("presentation:showQuestion", ({ index, total, question }) => {
   // Texto da pergunta
   const qText = document.createElement("div");
   qText.id = "question-text";
+  qText.classList.add("q-enter");
   qText.textContent = question.questionText || "(pergunta sem texto)";
   questionContainer.appendChild(qText);
 
   // Media da pergunta (se existir)
   const mediaDiv = document.createElement("div");
   mediaDiv.id = "media";
+  mediaDiv.classList.add("media-enter");
 
   if (question.questionMedia && question.questionMedia.type !== "none") {
     if (question.questionMedia.type === "image") {
@@ -235,7 +432,10 @@ startAnswerTimer(lastQuestionTimeLimit, code);
   if (type === "single") {
     (options || []).forEach((opt, i) => {
       const o = document.createElement("div");
-      o.className = "option option-" + i;
+      o.className = "option option-" + i + " option-show";
+
+      // atraso para aparecerem 1 a 1
+      o.style.animationDelay = `${i * 140}ms`;
 
       if (opt.type === "text") {
         o.textContent = opt.value;
@@ -244,18 +444,19 @@ startAnswerTimer(lastQuestionTimeLimit, code);
         img.src = opt.value;
         o.appendChild(img);
       } else if (opt.type === "video") {
-  const vid = document.createElement("video");
-  vid.src = opt.value;
-  vid.controls = true;
-  vid.autoplay = true;
-  vid.muted = true;
-  vid.playsInline = true;
-  o.appendChild(vid);
-}
+        const vid = document.createElement("video");
+        vid.src = opt.value;
+        vid.controls = true;
+        vid.autoplay = true;
+        vid.muted = true;
+        vid.playsInline = true;
+        o.appendChild(vid);
+      }
 
       optionsWrapper.appendChild(o);
     });
   }
+
 
   if (type === "approximation") {
     const t = document.createElement("div");
@@ -342,52 +543,72 @@ socket.on(
       }
     }
 
-    // LOG DE PODERES
+   // LOG DE PODERES
     powerLogDiv.innerHTML = "";
+    powerLogDiv.style.display = "none";
+    powerLogDiv.classList.remove("stamp-anim");
+
     if (powerLog) {
       const { steals = [], blocks = [] } = powerLog;
 
       if (steals.length || blocks.length) {
+        powerLogDiv.style.display = "block";
+
         const title = document.createElement("div");
         title.style.marginTop = "10px";
         title.style.fontSize = "1.3rem";
         title.style.fontWeight = "400";
         title.textContent = "Poderes usados:";
         powerLogDiv.appendChild(title);
-      }
 
-      steals.forEach((s) => {
-        const line = document.createElement("div");
-        line.style.fontSize = "1.2rem";
+        steals.forEach((s) => {
+          const line = document.createElement("div");
+          line.style.fontSize = "1.2rem";
           line.style.fontWeight = "300";
-        line.textContent = `🕵️ ${s.fromTeamName} roubou a resposta de ${s.toTeamName}`;
-        powerLogDiv.appendChild(line);
-      });
+          line.textContent = `🕵️ ${s.fromTeamName} roubou a resposta de ${s.toTeamName}`;
+          powerLogDiv.appendChild(line);
+        });
 
-      blocks.forEach((b) => {
-        const line = document.createElement("div");
-        line.style.fontSize = "1.2rem";
-        line.style.fontWeight = "300";
-        line.textContent = `⛔ ${b.fromTeamName} bloqueou ${b.toTeamName}`;
-        powerLogDiv.appendChild(line);
-      });
+        blocks.forEach((b) => {
+          const line = document.createElement("div");
+          line.style.fontSize = "1.2rem";
+          line.style.fontWeight = "300";
+          line.textContent = `⛔ ${b.fromTeamName} bloqueou ${b.toTeamName}`;
+          powerLogDiv.appendChild(line);
+        });
+
+        // forçar reflow e disparar animação de carimbo
+        void powerLogDiv.offsetWidth;
+        powerLogDiv.classList.add("stamp-anim");
+      }
     }
 
     renderAnswersProgress();
+
   }
 );
 
 // ---------- ECRÃ ENTRE PERGUNTAS ----------
 socket.on("presentation:nextScreen", ({ nextIndex, total }) => {
-  clearAnswerTimer();
+
+   if (lobbyInstructionsDiv) {
+    lobbyInstructionsDiv.style.display = "none";
+  }
+playGameMusic();
+  
+    clearAnswerTimer();
   currentPhase = "between";
   if (typeof total === "number") totalQuestions = total;
 
-  questionContainer.innerHTML = "";
+   questionContainer.innerHTML = "";
   answersCountDiv.textContent = "";
   explanationDiv.innerHTML = "";
   powerLogDiv.innerHTML = "";
+  powerLogDiv.style.display = "none";
+  powerLogDiv.classList.remove("stamp-anim");
   lastAnsweredTeamIds = [];
+  lastBlockedTeamIds = [];
+  lastResults = null;
 
   const n = (nextIndex ?? 0) + 1; // transformar 0-based em 1-based
   betweenQuestionsDiv.innerHTML = `
@@ -463,7 +684,7 @@ function renderAnswersProgress() {
   if (!answersProgressDiv) return;
   answersProgressDiv.innerHTML = "";
 
- // tentar usar teamsById; se estiver vazio, usa o snapshot lastKnownTeams
+  // tentar usar teamsById; se estiver vazio, usa o snapshot lastKnownTeams
   let teams = Object.values(teamsById || {});
   if (!teams.length && lastKnownTeams.length) {
     teams = lastKnownTeams.slice();
@@ -480,22 +701,33 @@ function renderAnswersProgress() {
     const isAnswered = answeredSet.has(team.id);
     const isBlocked  = blockedSet.has(team.id);
 
+    // animação de entrada: só no lobby (currentPhase === "idle")
+    const isNewJoin = currentPhase === "idle" && joinHighlightIds.has(team.id);
+    if (isNewJoin) {
+      div.classList.add("join-anim");
+      // remover a classe depois da animação, para não interferir depois
+      setTimeout(() => {
+        div.classList.remove("join-anim");
+      }, 900);
+    }
+
     if (currentPhase === "results" && lastResults) {
-       const r = lastResults[team.id] || null;  // <<< ADICIONA ISTO
+      const r = lastResults[team.id] || null;
+
       if (r && r.blocked) {
-  div.classList.remove("pending","answered","correct");
-  div.classList.add("wrong");
-} else if (r && (r.correct || r.correctViaSteal || r.winner || r.winnerViaSteal)) {
-  // verde
-  div.classList.remove("pending","answered","wrong");
-  div.classList.add("correct");
-} else if (isAnswered || isBlocked) {
-  // quem respondeu ou foi bloqueado mas não ganhou → vermelho
-  div.classList.remove("pending","answered");
-  div.classList.add("wrong");
-} else {
-  div.classList.add("pending");
-}
+        div.classList.remove("pending","answered","correct");
+        div.classList.add("wrong");
+      } else if (r && (r.correct || r.correctViaSteal || r.winner || r.winnerViaSteal)) {
+        // verde
+        div.classList.remove("pending","answered","wrong");
+        div.classList.add("correct");
+      } else if (isAnswered || isBlocked) {
+        // quem respondeu ou foi bloqueado mas não ganhou → vermelho
+        div.classList.remove("pending","answered");
+        div.classList.add("wrong");
+      } else {
+        div.classList.add("pending");
+      }
     } else {
       // Durante pergunta/respostas/locked
       if (isBlocked) {
@@ -522,5 +754,9 @@ function renderAnswersProgress() {
     div.appendChild(name);
     answersProgressDiv.appendChild(div);
   });
+
+  // depois de desenhar, já não precisamos repetir a animação para as mesmas equipas
+  joinHighlightIds.clear();
 }
+
 

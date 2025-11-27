@@ -169,14 +169,16 @@
        justify-content: center;
         align-items: center;
       text-align: center;
+    
     }
 
     #question-container {
   
-      max-width: 960px;
+      max-width: 70%;
         justify-content: center;
         align-items: center;
       text-align: center;
+      margin: 0 auto;
     }
 
     #question-text {
@@ -193,12 +195,12 @@
 
     #media img,
     #media video {
-      max-width: 100%;
-      max-height: 320px;
-      border-radius: 22px;
+      max-height: 400px;
+      border-radius: 30px;
       box-shadow: 0 18px 38px rgba(0,0,0,0.9);
       display: block;
       margin: 0 auto;
+      
     }
 
     #explanation {
@@ -215,16 +217,91 @@
       
     }
 
-    #power-log {
-        font-family: "Bangers";
-      margin-top: 4px;
-      font-size: 0.9rem;
-      text-align: left;
+#power-log {
+  position: fixed;
+  right: 24px;
+  bottom: 200px;
+
+  /* tamanho do bloco de notas (ajusta se quiseres) */
+  width: 320px;
+  min-height: 180px;
+
+  color: #111827;
+  padding: 28px 32px 24px 32px; /* zona onde o texto fica “escrito” */
+  font-family: "Bangers", system-ui, sans-serif;
+  font-size: 1rem;
+  text-align: left;
+  line-height: 1.3;
+
+  transform: rotate(-2deg);
+  z-index: 1200;
+  pointer-events: none;
+  display: none; /* escondido por defeito */
+
+  /* necessário para o ::before se posicionar relativamente a este div */
+  /* (position: fixed já funciona como contexto) */
+}
+
+    #power-log > div:first-child {
+      font-weight: 300;
+      margin-bottom: 4px;
     }
 
+    #power-log::before {
+  content: "";
+  position: absolute;
+  inset: 0; /* ocupa todo o #power-log */
+  background: url("/media/note.png") no-repeat center center;
+  background-size: 100% 100%; /* o notepad ocupa 100% da área */
+  z-index: -1;
+  border-radius: 12px;
+}
+
+/* animação de carimbo */
+#power-log.stamp-anim {
+  animation: stampPop 260ms ease-out;
+}
+
+@keyframes stampPop {
+  0% {
+    opacity: 0;
+    transform: rotate(-8deg) scale(0.4);
+    filter: drop-shadow(0 0 0 rgba(0,0,0,0));
+  }
+  60% {
+    opacity: 1;
+    transform: rotate(-2deg) scale(1.06);
+    filter: drop-shadow(0 18px 36px rgba(0,0,0,0.9));
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(-2deg) scale(1);
+    filter: drop-shadow(0 12px 26px rgba(0,0,0,0.8));
+  }
+}
+
+.q-enter,
+.media-enter {
+  animation: qEnter 1000ms cubic-bezier(0.18, 0.89, 0.32, 1.28) both;
+}
+
+@keyframes qEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
     /* Respostas em 2 colunas */
     #optionsWrapper {
-      margin-top: 22px;
+      margin-top: 30px;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px 18px;
@@ -232,24 +309,43 @@
       
     }
 
-    .option {
-      /* background: 
-        linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)),
-         url("/media/option.png");  */
-         
-         color:rgb(255, 255, 255);
-    background:linear-gradient(#b9813d, #ce9d48f4); 
-      padding: 20px 30px;
-      border-radius: 10px;
-      font-size: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      box-shadow: 0 18px 36px rgba(0.7,0,0,0.5);
-      width: 100%;
-      text-align: center;
-      justify-content: center;
-    }
+   .option {
+  color: #ffffff;
+  background: linear-gradient(#b9813d, #ce9d48f4);
+  padding: 30px 30px;
+  border-radius: 10px;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 18px 36px rgba(0.7,0,0,0.5);
+  width: 100%;
+  text-align: center;
+  justify-content: center;
+
+  opacity: 0;
+  transform: translateY(14px) scale(0.96);
+}
+
+/* classe aplicada via JS para animar a entrada */
+.option-show {
+  animation: optionIn 4000ms ease-out forwards;
+}
+
+@keyframes optionIn {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.9);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(0) scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
 
     .option.correct {
       border-color: var(--correct);
@@ -302,7 +398,7 @@
       justify-content: center;
       max-width: 100%;
       overflow-x: auto;
-    
+      margin-bottom:-30px;
      
     }
 
@@ -312,8 +408,10 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      font-size: 0.90rem;
+      font-size: 1.2rem;
+      font-weight: 300;
       min-width: 70px;
+      letter-spacing: 0.05em;   /* more spaced out */
     }
 .ap-avatar {
     margin-top: 10%;
@@ -348,12 +446,15 @@
 }
 
     .ap-team.correct .ap-avatar {
-      border-color: #22c55e;
+      outline: 3px solid #22c55e;
+      border: 2px solid #22c55e;
       box-shadow: 0 0 18px rgba(34,197,94,0.95);
       opacity: 1;
     }
 
     .ap-team.wrong .ap-avatar {
+            outline: 3px solid #f97373;
+
       border-color: #f97373;
       box-shadow: 0 0 18px rgba(239,68,68,0.95);
       opacity: 1;
@@ -497,10 +598,23 @@
   50%     { transform: translate(-50%, -55%) }
 }
 @keyframes boom {
-  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.2); filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
-  40%  { opacity: 1; transform: translate(-50%, -50%) scale(1.2); filter: drop-shadow(0 0 20px rgba(255,255,255,0.9)); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+    filter: drop-shadow(0 0 0 rgba(255,255,255,0));
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 20px rgba(255,255,255,0.9));
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 rgba(255,255,255,0.0));
+  }
 }
+
 @keyframes shake {
   0% { transform: translateX(0); }
   25% { transform: translateX(-1px); }
@@ -541,6 +655,37 @@
   color: rgba(255,255,255,0.8);
   text-shadow: 0 2px 10px rgba(0,0,0,0.8);
 }
+    /* TIME'S UP BANNER */
+    #timeUpBanner {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1500;
+      pointer-events: none;
+    }
+
+    
+#timeUpBanner .timeup-inner {
+  background: rgba(220, 38, 38, 0.95);
+  color: #fef9c3;
+  padding: 24px 40px;
+  border-radius: 999px;
+  font-family: "Bangers", system-ui, sans-serif;
+  font-size: 5rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border: 3px solid #facc15;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.9);
+  animation: boom 600ms ease-out forwards;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
 
 @keyframes bellPop {
   0%   { transform: scale(0.6) rotate(-3deg); opacity: 0; }
@@ -552,8 +697,292 @@
   0%,100% { box-shadow: 0 18px 36px rgba(0,0,0,0.6); }
   50%     { box-shadow: 0 24px 60px rgba(0,0,0,0.9); }
 }
+.timerPhoto {
+  width: 100px;            /* ajusta se quiseres maior/menor */
+  height: 100px;
+  border-radius: 50%;     /* foto redondinha */
+  object-fit: cover;
+  flex-shrink: 0;         /* não encolhe quando o texto é grande */
+}
+@media (max-width: 800px) {
+  #timeUpBanner .timeup-inner {
+    font-size: 3rem;
+    padding: 18px 26px;
+  }
+
+  .timerPhoto {
+    width: 48px;
+    height: 48px;
+  }
+}
 
 
+    #lobby-instructions img {
+      max-width: 100vw;
+      max-height: 75vh;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 24px;
+    }
+
+    @media (max-width: 900px) {
+      #lobby-instructions img {
+        max-width: 100vw;
+        max-height: 65vh;
+      }
+    }
+
+    /* LOBBY / COMO FUNCIONA O QUIZ */
+    #lobby-instructions {
+      display: flex;              /* visível antes do jogo começar */
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+
+    #lobby-instructions .li-inner {
+      box-shadow: 0 18px 36px rgba(0.7,0,0,0.5);
+      background: linear-gradient(#b9813d, #ce9d48f4);
+      border-radius: 32px;
+      padding: 32px 40px;
+      max-width: 1100px;
+      width: 100%;
+      color: #fffce7;
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+    }
+
+    /* topo: COMO FUNCIONA O + –logo */
+    .li-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 10px;
+      margin-bottom: 40px;
+    }
+
+    .li-title {
+      font-family: "Bangers", system-ui, sans-serif;
+      font-size: 3.5rem;
+      text-transform: uppercase;
+      color: #fffbeb;
+           text-shadow:
+        0 4px 0 #000,
+        0 0 24px rgba(0,0,0,0.85);
+    }
+
+
+    .li-logo-main {
+      font-family: "Bangers", system-ui, sans-serif;
+      font-size: 2.2rem;
+            color: #111827;
+    }
+
+    .li-logo-sub {
+      font-family: "Bangers", system-ui, sans-serif;
+      font-size: 2.2rem;
+      color: #0f172a;
+   
+    }
+
+    /* corpo em 2 colunas */
+    .li-content {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+      gap: 32px;
+      align-items: flex-start;
+ 
+    }
+
+    .li-col {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;     
+    }
+
+    .li-brain-row {
+      align-items: center;
+      gap: 18px;
+    }
+
+    .li-icon {
+      display: block;
+        margin: 0 auto;
+    }
+@media (max-width: 900px) {
+  .lobby-brain-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .lobby-power-icon {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+    .li-block-title {
+      font-family: "Bangers", system-ui, sans-serif;
+      font-size: 2.4rem;
+      text-transform: uppercase;
+      color: #fffbeb;
+      text-shadow:
+        0 4px 0 #000,
+        0 0 24px rgba(0,0,0,0.85);
+    }
+
+    .li-block-sub {
+      font-family: "Baloo 2", system-ui, sans-serif;
+      font-size: 1.05rem;
+      margin-top: 4px;
+      color: #fefce8;
+    }
+
+    /* poderes das equipas */
+    .li-powers-title {
+      font-family: "Bangers", system-ui, sans-serif;
+      font-size: 2.1rem;
+      text-transform: uppercase;
+      color: #fffbeb;
+      text-shadow:
+        0 4px 0 #000,
+        0 0 24px rgba(0,0,0,0.8);
+    }
+
+    .li-powers-list {
+      margin: 4px 0 10px;
+      padding-left: 1.2rem;
+      font-family: "Baloo 2", system-ui, sans-serif;
+      font-size: 1rem;
+    }
+
+    .li-powers-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px 24px;
+    }
+
+    .li-power-card {
+      background: rgba(0,0,0,0.15);
+      border-radius: 18px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.4);
+    }
+    .li-power-name {
+      font-family: "Bangers", system-ui, sans-serif;
+      font-size: 1.7rem;
+      text-transform: uppercase;
+      text-shadow: 0 3px 0 #000;
+    }
+
+    .li-power-name.roubar {
+      color: #ffeb3b;
+    }
+
+    .li-power-name.bloquear {
+      color: #ffb4b4;
+    }
+
+    .li-power-desc {
+      font-family: "Baloo 2", system-ui, sans-serif;
+      font-size: 0.95rem;
+      margin-left: 4px;
+      margin-top: 2px;
+    }
+.li-brain {
+  width: 30px !important;
+  height: 30px !important;
+}
+
+.li-power-icon {
+  width: 100px !important;
+  height: 100px !important;
+  object-fit: contain;
+}
+.li-power-icon2 {
+  width: 130px !important;
+  height: 130px !important;
+  object-fit: contain;
+}
+
+@media (max-width: 980px) {
+  .li-brain {
+    width: 70px;
+    height: 70px;
+  }
+
+  .li-power-icon {
+    width: 26px;
+    height: 26px;
+  }
+}
+/* QR code */
+.li-qr-row {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.li-qr-text {
+  font-family: "Baloo 2", system-ui, sans-serif;
+  font-size: 1rem;
+}
+
+#lobby-qr {
+  width: 150px;
+  height: 150px;
+  background: #ffffff;
+  padding: 8px;
+  border-radius: 18px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.6);
+}
+
+#lobby-qr canvas,
+#lobby-qr img {
+  width: 100%;
+  height: 100%;
+}
+
+.li-qr-link {
+  font-family: "Baloo 2", system-ui, sans-serif;
+  font-size: 0.9rem;
+  opacity: 0.9;
+  text-align: center;
+}
+
+#lobby-qr-url {
+  font-weight: 600;
+}
+.ap-team.join-anim {
+  animation: avatarJoin 0.7s ease-out;
+  transform-origin: 50% 100%;
+}
+
+@keyframes avatarJoin {
+  0% {
+    transform: scale(0) translateY(40px);
+    opacity: 0;
+  }
+  55% {
+    transform: scale(1.2) translateY(-6px);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
   </style>
 </head>
 <body>
@@ -568,8 +997,22 @@
         
 
 
-<!-- (optional) tiny sound -->
-<audio id="boomSfx" src="/media/sfx/boom.mp3" preload="auto"></audio>
+
+
+<!-- Música de fundo do ecrã de instruções (lobby) -->
+<audio id="bgMusicLobby" src="/media/background_lobby.mp3" preload="auto" loop></audio>
+
+<!-- Música de fundo quando o jogo está a correr (perguntas, respostas, rondas) -->
+<audio id="bgMusicGame" src="/media/background_game.mp3" preload="auto" loop></audio>
+
+<!-- Som quando o tempo acaba -->
+<audio id="timeUpSfx" src="/media/timesup.mp3" preload="auto"></audio>
+
+<!-- Som quando uma nova equipa entra no lobby -->
+<audio id="teamJoinSfx" src="/media/pop.mp3" preload="auto"></audio>
+
+<!-- Som quando uma equipa é bloqueada -->
+<audio id="blockSfx" src="/media/block.mp3" preload="auto"></audio>
 
         <div class="leaderboard-mini">
           <div id="leaderboardTitle">Ranking</div>
@@ -577,13 +1020,88 @@
         </div>
       </div>
 
-      <div class="question-area">
+ <div class="question-area">
+        <!-- ECRÃ DE INSTRUÇÕES ANTES DO JOGO -->
+        <div id="lobby-instructions">
+  <div class="li-inner">
+    <!-- TOPO -->
+    <div class="li-header">
+      <div class="li-title">COMO FUNCIONA O JOGO</div>
+    </div>
+
+    <!-- CORPO PRINCIPAL -->
+    <div class="li-content">
+      <!-- COLUNA ESQUERDA: 30 PERGUNTAS -->
+     <div class="li-col li-col">
+        <div class="li-brain-row">
+          <div class="li-powers-title">Objetivo do Jogo</div>
+          <br>
+         <div class="li-power-card">
+            <div class="li-power-top">
+              <img class="li-icon li-power-icon2" src="/media/cloud.png" alt="50:50" />
+              <div class="li-power-name roubar">30 Perguntas</div>
+            </div>
+            <div class="li-power-desc">Perguntas são respondidas no telemóvel.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLUNA DIREITA: PODERES -->
+      <div class="li-col li-col-right">
+        <div class="li-powers-title">PODERES DAS EQUIPAS</div>
+        <div class="li-powers-grid">
+          <!-- ROUBAR -->
+          <div class="li-power-card">
+            <div class="li-power-top">
+              <img class="li-icon li-power-icon" src="/media/steal.png" alt="Roubar" />
+              <div class="li-power-name bloquear">ROUBAR</div>
+            </div>
+            <div class="li-power-desc">Rouba a resposta de outra equipa.</div>
+          </div>
+
+          <!-- 50:50 -->
+          <div class="li-power-card">
+            <div class="li-power-top">
+              <img class="li-icon li-power-icon" src="/media/5050.png" alt="50:50" />
+              <div class="li-power-name bloquear">50:50</div>
+            </div>
+            <div class="li-power-desc">Descarta algumas hipóteses erradas.</div>
+          </div>
+
+          <!-- BLOQUEAR -->
+          <div class="li-power-card">
+            <div class="li-power-top">
+              <img class="li-icon li-power-icon" src="/media/stop.png" alt="Bloquear" />
+              <div class="li-power-name bloquear">BLOQUEAR</div>
+            </div>
+            <div class="li-power-desc">Impede outra equipa de responder.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LINHA DO QR CODE -->
+    <div class="li-qr-row">
+      <div class="li-qr-text">Cada equipa acede ao jogo aqui:</div>
+      <div id="lobby-qr"></div>
+      <div class="li-qr-link">
+        <!-- ou entra em: <span id="lobby-qr-url"></span> -->
+      </div>
+    </div>
+  </div>
+</div>
+
+
+        </div>
+
         <div id="question-container"></div>
         <div id="answers-count"></div>
         <div id="power-log"></div>
         <div id="explanation"></div>
         <div id="between-questions" style="display:none;margin-top:10%;">A aguardar próxima pergunta…</div>
       </div>
+
+
 
       <div class="players-bar">
         <div id="answers-progress"></div>
@@ -600,9 +1118,16 @@
 </div>
 
     </div>
+   <div id="timeUpBanner">
+  <div class="timeup-inner">
+    Tempo! <img class="timerPhoto" src="/media/mourao.png" alt="QuizzMogadouro25" />
+  </div>
+</div>
+
   </div>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="js/presentation.js"></script>
+ <script src="/socket.io/socket.io.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="js/presentation.js"></script>
 </body>
 </html>
