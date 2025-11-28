@@ -73,7 +73,7 @@ let gameMusicStarted  = false;
 if (bgMusicLobby) bgMusicLobby.volume = 0.15;  // música de fundo baixinha no lobby
 if (bgMusicGame)  bgMusicGame.volume  = 0.15;  // música de fundo baixinha no jogo
 if (timeUpSfx)    timeUpSfx.volume    = 1.0;   // time up bem audível
-if (joinSfx)      joinSfx.volume      = 0.9;   // entrada de equipa
+if (joinSfx)      joinSfx.volume      = 1.0;   // entrada de equipa
 if (blockSfx)     blockSfx.volume     = 1.0;   // bloqueio forte
 
 function playLobbyMusic() {
@@ -476,10 +476,27 @@ socket.on("presentation:updateAnswers", ({ count }) => {
 
 
 socket.on("presentation:answersProgress", ({ answeredTeamIds, blockedTeamIds }) => {
+  const prevBlocked = new Set(lastBlockedTeamIds || []);
+  const currentBlocked = blockedTeamIds || [];
+
   lastAnsweredTeamIds = answeredTeamIds || [];
-  lastBlockedTeamIds = blockedTeamIds || [];
+  lastBlockedTeamIds = currentBlocked;
+
+  // detectar ids que ficaram bloqueados agora (não estavam antes)
+  const newlyBlocked = currentBlocked.filter(id => !prevBlocked.has(id));
+
+  if (newlyBlocked.length && blockSfx) {
+    try {
+      blockSfx.currentTime = 0;
+      blockSfx.play();
+    } catch (e) {
+      console.warn("blockSfx play blocked:", e);
+    }
+  }
+
   renderAnswersProgress();
 });
+
 
 // ---------- REVELAR RESULTADOS + LOG + EXPLICAÇÃO ----------
 socket.on(
@@ -708,7 +725,7 @@ function renderAnswersProgress() {
       // remover a classe depois da animação, para não interferir depois
       setTimeout(() => {
         div.classList.remove("join-anim");
-      }, 900);
+      }, 5000);
     }
 
     if (currentPhase === "results" && lastResults) {
