@@ -42,8 +42,9 @@ const overlayDialog = document.getElementById("overlayDialog");
 const overlayContent = document.getElementById("overlayContent");
 
 // estado dos poderes
+const STEAL_MAX = 2; // nº máximo de vezes que podes roubar no jogo
 let powersUsed = {
-  steal: false,
+  steal: 0,      // contador (0, 1, 2)
   fifty: false,
   block: false
 };
@@ -308,12 +309,21 @@ socket.on("team:joined", (team) => {
   }
 
   if (team.powers) {
-    powersUsed = {
-      steal: !!team.powers.steal,
-      fifty: !!team.powers.fifty,
-      block: !!team.powers.block
-    };
+  let stealCount = 0;
+  if (typeof team.powers.steal === "number") {
+    stealCount = team.powers.steal;
+  } else if (team.powers.steal) {
+    // jogos antigos em que era boolean → conta como 1 uso
+    stealCount = 1;
   }
+
+  powersUsed = {
+    steal: stealCount,
+    fifty: !!team.powers.fifty,
+    block: !!team.powers.block
+  };
+}
+
   renderPowers();
 
   if (statusText) {
@@ -327,33 +337,47 @@ socket.on("team:storeId", (id) => {
   console.log("Stored teamId in sessionStorage:", id);
 });
 
-// ===== GESTÃO DE PODERES =====
 function renderPowers() {
   powerButtons.forEach((btn) => {
     const power = btn.dataset.power;
-    const used = powersUsed[power];
     const stateSpan = btn.querySelector(".state");
 
     // reset estado base
     btn.classList.remove("used", "disabled-for-type");
     btn.disabled = false;
 
-    if (used) {
-      btn.classList.add("used");
-      btn.disabled = true;
-      if (stateSpan) stateSpan.textContent = "Usado";
-    } else {
-      if (stateSpan) stateSpan.textContent = "Disponível";
-    }
+    if (power === "steal") {
+      const usedCount = powersUsed.steal || 0;
+      const remaining = STEAL_MAX - usedCount;
 
-    // em perguntas de aproximação o 50:50 fica bloqueado
-    if (currentQuestionType === "approximation" && power === "fifty" && !used) {
-      btn.classList.add("disabled-for-type");
-      btn.disabled = true;
-      if (stateSpan) stateSpan.textContent = "Indisp. nesta pergunta";
+      if (usedCount >= STEAL_MAX) {
+        btn.classList.add("used");
+        btn.disabled = true;
+        if (stateSpan) stateSpan.textContent = `Usado (${STEAL_MAX-usedCount}/${STEAL_MAX})`;
+      } else {
+        if (stateSpan) stateSpan.textContent = `Disponível (${STEAL_MAX-usedCount}/${STEAL_MAX})`;
+      }
+    } else {
+      const used = powersUsed[power];
+
+      if (used) {
+        btn.classList.add("used");
+        btn.disabled = true;
+        if (stateSpan) stateSpan.textContent = "Usado";
+      } else {
+        if (stateSpan) stateSpan.textContent = "Disponível";
+      }
+
+      // em perguntas de aproximação o 50:50 fica bloqueado
+      if (currentQuestionType === "approximation" && power === "fifty" && !used) {
+        btn.classList.add("disabled-for-type");
+        btn.disabled = true;
+        if (stateSpan) stateSpan.textContent = "Indisp. nesta pergunta";
+      }
     }
   });
 }
+
 
 
 powerButtons.forEach((btn) => {
@@ -367,10 +391,21 @@ powerButtons.forEach((btn) => {
       return;
     }
 
-    if (powersUsed[power]) {
-      if (statusText) statusText.textContent = "Já usaste esse poder nesta partida.";
-      return;
+    if (power === "steal") {
+  const usedCount = powersUsed.steal || 0;
+  if (usedCount >= STEAL_MAX) {
+    if (statusText) {
+      statusText.textContent = "Já usaste o poder de roubar duas vezes nesta partida.";
     }
+    return;
+  }
+} else {
+  if (powersUsed[power]) {
+    if (statusText) statusText.textContent = "Já usaste esse poder nesta partida.";
+    return;
+  }
+}
+
     if (answersLocked) {
       showStateOverlay("AGUARDA", "Ainda não podes responder.");
       return;
@@ -447,7 +482,11 @@ powerButtons.forEach((btn) => {
 });
 
 socket.on("team:powerUsed", ({ power, targetTeamName }) => {
-  powersUsed[power] = true;
+  if (power === "steal") {
+    powersUsed.steal = (powersUsed.steal || 0) + 1;
+  } else {
+    powersUsed[power] = true;
+  }
   renderPowers();
 
   if (!statusText) return;
@@ -466,6 +505,7 @@ socket.on("team:powerUsed", ({ power, targetTeamName }) => {
     showStateOverlay("JOGADA REGISTADA", msg);
   }
 });
+
 
 
 socket.on("team:powerError", ({ power, message }) => {

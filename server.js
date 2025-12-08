@@ -316,7 +316,7 @@ io.on("connection", (socket) => {
         avatar: avatar || null,
         socketId: socket.id,
         score: 0,
-        powers: { steal: false, fifty: false, block: false }
+          powers: { steal: 0, fifty: false, block: false } // steal = nº de vezes usado
       };
 
       game.teams.push(team);
@@ -456,10 +456,32 @@ io.to(code).emit("team:showHold", {
 
     const team = game.teams.find(t => t.id === teamId);
 
-    if (team.powers[power]) {
-      socket.emit("team:powerError", { power, message: "Já usaste este poder." });
+  // limite de utilizações dos poderes
+  if (power === "steal") {
+    // steal pode ser usado até 2x no jogo
+    const usedTimes =
+      typeof team.powers.steal === "number"
+        ? team.powers.steal
+        : (team.powers.steal ? 1 : 0);
+
+    if (usedTimes >= 2) {
+      socket.emit("team:powerError", {
+        power,
+        message: "Já usaste o poder de roubar duas vezes nesta partida."
+      });
       return;
     }
+  } else {
+    // fifty e block continuam a ser 1x por jogo
+    if (team.powers[power]) {
+      socket.emit("team:powerError", {
+        power,
+        message: "Já usaste este poder."
+      });
+      return;
+    }
+  }
+
 
     // --- 50:50 ---
     if (power === "fifty") {
@@ -525,20 +547,28 @@ io.to(code).emit("team:showHold", {
     }
 
     // STEAL
-    if (power === "steal") {
-      team.powers.steal = true;
-      game.steals[qIndex][team.id] = targetTeam.id;
+    // STEAL
+if (power === "steal") {
+  const currentUses =
+    typeof team.powers.steal === "number"
+      ? team.powers.steal
+      : (team.powers.steal ? 1 : 0);
 
-      if (!game.stealLogs[qIndex]) game.stealLogs[qIndex] = [];
-      game.stealLogs[qIndex].push({
-        thiefId: team.id,
-        victimId: targetTeam.id
-      });
+  team.powers.steal = currentUses + 1; // incrementa contador
 
-      emitAnswersProgress(game, qIndex);
-      socket.emit("team:powerUsed", { power, targetTeamName: targetTeam.name });
-      return;
-    }
+  game.steals[qIndex][team.id] = targetTeam.id;
+
+  if (!game.stealLogs[qIndex]) game.stealLogs[qIndex] = [];
+  game.stealLogs[qIndex].push({
+    thiefId: team.id,
+    victimId: targetTeam.id
+  });
+
+  emitAnswersProgress(game, qIndex);
+  socket.emit("team:powerUsed", { power, targetTeamName: targetTeam.name });
+  return;
+}
+
   });
 
   // --- EQUIPA RESPONDE ---
