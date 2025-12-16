@@ -25,6 +25,86 @@ app.use(express.static("public"));
 const games = {};
 
 // ----------- FUNÇÕES ÚTEIS -----------
+
+function createMazeVariant1() {
+  // Harder maze: taller + wider
+   const grid = [
+    "11111111111111111111111",
+    "10100000000010000010001",
+    "10101111111110111010101",
+    "10100000000000001000101",
+    "10111111111111101111101",
+    "10100010000010000000101",
+    "10101010111011111110101",
+    "10001010101000001000101",
+    "11111010101111101110101",
+    "10001000100000100010101",
+    "10111111101111111011101",
+    "10000000000000001000101",
+    "10111111111111101110101",
+    "10100000100010000010101",
+    "10111010101010111110101",
+    "10000010101010000010101",
+    "11111110101011111010101",
+    "00000000001000001000001",
+    "11111111111111111111111",
+  ].map(r => r.split("").map(Number));
+
+  return {
+    grid,
+    cellSize: 23,
+    start: { x: 1, y: 1 },
+    goal:  { x: 0, y: 17 },
+  };
+}
+
+function createMazeVariant2() {
+  // Your original 13 x 25 maze
+  const grid = [
+  "11111111111111111111111",
+  "10100000000000000000001",
+  "10101111101111111011111",
+  "10101000001000000010001",
+  "10111011111011111010101",
+  "10001000001010001000101",
+  "11101101101010111111101",
+  "10001000101010100000101",
+  "10111010101010101110101",
+  "10100010101010001000101",
+  "10111010101011101011101",
+  "10001010100000101010101",
+  "11101010111110111010101",
+  "10101010000010000010101",
+  "10101011111011111110101",
+  "10100010001010000010101",
+  "10111110111010111010101",
+  "10000000000000100000100",
+  "11111111111111111111111",
+].map(r => r.split("").map(Number));
+
+return {
+  grid,
+  cellSize: 23,
+  start: { x: 1, y: 1 },
+  goal:  { x: 22, y: 17 },  // exit on the right side now
+};
+}
+
+// Decide which maze to use based on the question index that comes AFTER the bonus
+function createMazeForIndex(index) {
+  // index = pergunta 0-based que vem a seguir ao bónus
+  if (index === 1) return createMazeVariant1(); // entre ronda 1 e 2
+  if (index === 2) return createMazeVariant2(); // entre ronda 2 e 3
+  // fallback
+  return createMazeVariant1();
+}
+
+
+function isBonusRound(game, index) {
+  return !!game?.mazeRounds?.has(index);
+}
+
+
 function generateCode() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let s = "";
@@ -37,7 +117,7 @@ function emitTeamsUpdated(game) {
 }
 
 function emitScoreUpdate(game) {
-  const leaderboard = [...game.teams].sort((a, b) => b.score - a.score);
+  const leaderboard = [...game.teams].sort((a,b) => b.score - a.score);
   io.to(game.code).emit("game:scoreUpdate", { leaderboard });
 }
 
@@ -52,7 +132,11 @@ function emitAnswersProgress(game, qIndex) {
   const stealers = Object.keys(steals);
   const blockedIds = Array.from(blockedSet);
 
-  const union = [...new Set([...answeredIds, ...stealers, ...blockedIds])];
+  const union = [...new Set([
+  ...answeredIds,
+  ...stealers,
+  ...blockedIds
+])];
 
   io.to(game.code).emit("presentation:answersProgress", {
     answeredTeamIds: union,
@@ -83,6 +167,23 @@ function syncTeamState(game, team, socket) {
 
   // limpamos o UI desta pergunta para esse socket
 socket.emit("team:prepareNextQuestion");
+
+if (game.phase === "maze" && game.mazeState) {
+  const bonusIndex = game.mazeIndex ?? game.currentQuestion;
+
+  socket.emit("maze:start", {
+    index: bonusIndex,
+    bonusIndex,
+    total: game.questions.length,
+    grid: game.mazeState.grid,
+    cellSize: game.mazeState.cellSize,
+    start: game.mazeState.start,
+    goal: game.mazeState.goal
+  });
+  socket.emit("maze:updatePositions", { positions: game.mazeState.positions });
+  return;
+}
+
 
 if (phase === "between" || phase === "question") {
   socket.emit("team:showHold", {
@@ -175,13 +276,28 @@ function syncPresentationState(game, socket) {
   const qIndex = game.currentQuestion;
   const q = game.questions[qIndex];
   const phase = game.phase || "question";
+  
+if (game.phase === "maze" && game.mazeState) {
+  socket.emit("maze:start", {
+    index: game.currentQuestion,
+    total: game.questions.length,
+    grid: game.mazeState.grid,
+    cellSize: game.mazeState.cellSize,
+    start: game.mazeState.start,
+    goal: game.mazeState.goal
+  });
+  socket.emit("maze:updatePositions", { positions: game.mazeState.positions });
+  return;
+}
 
   // ENTRE PERGUNTAS → mostra banner de ronda, não a pergunta
   if (phase === "between" || qIndex == null || qIndex < 0 || !q) {
-    socket.emit("presentation:nextScreen", {
-      nextIndex: (qIndex ?? -1) + 1, // próxima ronda (1-based)
-      total: game.questions.length
-    });
+    const ni = (qIndex ?? -1) + 1;
+socket.emit("presentation:nextScreen", {
+  nextIndex: ni,
+  total: game.questions.length,
+  isBonus: isBonusRound(game, ni)
+});
 
     return;
   }
@@ -245,6 +361,10 @@ io.on("connection", (socket) => {
     const code = generateCode();
 
     games[code] = {
+       mazeRounds: new Set([1, 2]), // bónus antes da pergunta 2 e 3 (1-based)
+  mazeState: null,
+  mazeIndex: null,             // qual índice de pergunta está associado a ESTE labirinto
+       pendingQuestion: null,    // NOVO
       code,
       hostId: socket.id,
       teams: [],
@@ -371,6 +491,11 @@ io.on("connection", (socket) => {
     game.status = "started";
     game.currentQuestion = -1;
     game.phase = "between"; // NOVO
+io.to(code).emit("presentation:nextScreen", {
+  nextIndex: 0,
+  total: game.questions.length,
+  isBonus: isBonusRound(game, 0)
+});
 
     io.to(code).emit("game:started", { code });
   });
@@ -386,6 +511,39 @@ io.on("connection", (socket) => {
       io.to(code).emit("game:finished");
       return;
     }
+ if (isBonusRound(game, next)) {
+    game.phase = "maze";
+    emitPhase(game);
+
+    game.pendingQuestion = next;   // pergunta real que vem a seguir ao labirinto
+    game.mazeRounds.delete(next);  // consome este bónus para não repetir
+
+    const bonusIndex = next;       // 0-based: 1 => entre 1 e 2, 2 => entre 2 e 3
+    const maze = createMazeForIndex(bonusIndex);
+    game.mazeIndex = bonusIndex;
+
+    game.mazeState = {
+      ...maze,
+      startAt: Date.now(),
+      positions: Object.fromEntries(
+        game.teams.map(t => [t.id, { ...maze.start }])
+      ),
+      finished: {}
+    };
+
+    io.to(code).emit("maze:start", {
+      index: next,                 // mantemos para compatibilidade
+      bonusIndex,                  // novo: usado pelo presentation para escolher imagens
+      total: game.questions.length,
+      grid: maze.grid,
+      cellSize: maze.cellSize,
+      start: maze.start,
+      goal: maze.goal
+    });
+
+    io.to(code).emit("team:prepareNextQuestion");
+    return;
+  }
 
     game.currentQuestion = next;
     game.phase = "question"; // NOVO
@@ -455,7 +613,10 @@ io.to(code).emit("team:showHold", {
     const q = game.questions[qIndex];
 
     const team = game.teams.find(t => t.id === teamId);
-
+ if (game.phase === "maze") {
+    socket.emit("team:powerError", "Poderes desativados na Bonus Round.");
+    return;
+  }
   // limite de utilizações dos poderes
   if (power === "steal") {
     // steal pode ser usado até 2x no jogo
@@ -928,12 +1089,91 @@ io.to(code).emit("team:showHold", {
 });
 emitPhase(game);
 
+const ni = game.currentQuestion + 1;
 io.to(code).emit("presentation:nextScreen", {
-  nextIndex: game.currentQuestion + 1,           // próxima ronda (1-based)
-  total: game.questions.length
+  nextIndex: ni,
+  total: game.questions.length,
+  isBonus: isBonusRound(game, ni)
 });
+
 io.to(code).emit("team:prepareNextQuestion");
 });
+
+
+socket.on("host:setMazeRound", ({ code, index }) => {
+  const game = games[code];
+  if (!game) return;
+  if (index < 0 || index >= game.questions.length) return;
+
+  game.mazeRounds.add(index);
+  io.to(game.hostId).emit("host:mazeRoundsUpdated", Array.from(game.mazeRounds));
+  io.to(code).emit("presentation:mazeRoundsUpdated", Array.from(game.mazeRounds));
+});
+
+socket.on("host:clearMazeRound", ({ code, index }) => {
+  const game = games[code];
+  if (!game) return;
+
+  game.mazeRounds.delete(index);
+  io.to(game.hostId).emit("host:mazeRoundsUpdated", Array.from(game.mazeRounds));
+  io.to(code).emit("presentation:mazeRoundsUpdated", Array.from(game.mazeRounds));
+});
+
+socket.on("team:mazePos", ({ code, teamId, x, y }) => {
+  const game = games[code];
+  if (!game || game.phase !== "maze" || !game.mazeState) return;
+  if (!game.mazeState.positions[teamId]) return;
+
+  game.mazeState.positions[teamId] = { x, y };
+  io.to(code).emit("maze:updatePositions", { positions: game.mazeState.positions });
+});
+
+socket.on("team:mazeFinished", ({ code, teamId }) => {
+  const game = games[code];
+  if (!game || game.phase !== "maze" || !game.mazeState) return;
+  if (game.mazeState.finished[teamId] != null) return;
+
+  const elapsed = Date.now() - game.mazeState.startAt;
+  game.mazeState.finished[teamId] = elapsed;
+
+  io.to(code).emit("maze:finished", { teamId, elapsed });
+
+  // decide winner when first finishes (fast + exciting)
+  const ranking = Object.entries(game.mazeState.finished).sort((a,b)=>a[1]-b[1]);
+  const winnerId = ranking[0]?.[0];
+
+  if (winnerId) {
+    const winner = game.teams.find(t => t.id === winnerId);
+    if (winner) winner.score += 20;
+
+     io.to(code).emit("maze:results", { winnerId, ranking });
+    emitScoreUpdate(game);
+
+    const ni = game.pendingQuestion ?? (game.currentQuestion + 1);
+    game.pendingQuestion = null;
+
+    // fecha o labirinto no estado do jogo
+    game.phase = "between";
+    game.mazeState = null;
+    game.mazeIndex = null;
+    emitPhase(game);
+
+    // dá 2.5s para o banner de vencedor respirar na apresentação
+    setTimeout(() => {
+      io.to(code).emit("presentation:nextScreen", {
+        nextIndex: ni,
+        total: game.questions.length,
+        isBonus: isBonusRound(game, ni)
+      });
+
+      io.to(code).emit("team:showHold", {
+        title: "RONDA",
+        subtitle: "A próxima pergunta vai começar…"
+      });
+    }, 6000);
+  }
+});
+
 
   // --- DESLIGAR ---
   socket.on("disconnect", () => {

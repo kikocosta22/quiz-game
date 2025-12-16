@@ -46,7 +46,7 @@
       border-radius: 34px;
       background: transparent;
       position: relative;
-      overflow: hidden;
+      overflow: visible;
     }
 
     .stage-inner {
@@ -452,8 +452,8 @@
 
     .ap-team.wrong .ap-avatar {
             outline: 3px solid #f97373;
+ border: 2px solid #f97373;
 
-      border-color: #f97373;
       box-shadow: 0 0 18px rgba(239,68,68,0.95);
       opacity: 1;
     }
@@ -736,23 +736,25 @@
       display: flex;              /* visível antes do jogo começar */
       align-items: center;
       justify-content: center;
-      width: 100%;
+      width: 90%;
       height: 100%;
       margin-top: 0;
       margin-bottom: 0;
+       --li-scale: 1;      
     }
 
     #lobby-instructions .li-inner {
-      box-shadow: 0 18px 36px rgba(0.7,0,0,0.5);
+      box-shadow: 0 18px 36px rgba(0.7,0,0,0.5); 
       background: linear-gradient(#b9813d, #ce9d48f4);
       border-radius: 32px;
       padding: 32px 40px;
-      max-width: 1100px;
+      max-width: 1250px;
       width: 100%;
       color: #fffce7;
       display: flex;
       flex-direction: column;
       gap: 26px;
+      
     }
 
     /* topo: COMO FUNCIONA O + –logo */
@@ -966,6 +968,17 @@
   transform-origin: 50% 100%;
 }
 
+.bonus-line{
+  margin-top:6px;
+  font-size: .9em;
+  letter-spacing: .08em;
+  opacity: .9;
+}
+
+.round-banner.bonus-only{
+  font-size: 3.2rem;
+  letter-spacing: .12em;
+}
 @keyframes avatarJoin {
   0% {
     transform: scale(0) translateY(200px);
@@ -1010,6 +1023,8 @@
 
 <!-- Som quando uma equipa é bloqueada -->
 <audio id="blockSfx" src="/media/block.mp3" preload="auto"></audio>
+<audio id="revealSfx" src="/media/tada.mp3" preload="auto"></audio>
+<audio id="beepSfx" src="/media/beep.mp3" preload="auto"></audio>
 
         <div class="leaderboard-mini">
           <div id="leaderboardTitle">Ranking</div>
@@ -1018,6 +1033,7 @@
       </div>
 
  <div class="question-area">
+  <canvas id="mazeBoard" style="display:none; width:100%; max-width:980px; border-radius:20px;"></canvas>
         <!-- ECRÃ DE INSTRUÇÕES ANTES DO JOGO -->
         <div id="lobby-instructions">
   <div class="li-inner">
@@ -1049,29 +1065,38 @@
         <div class="li-powers-grid">
           <!-- ROUBAR -->
           <div class="li-power-card">
+            <div style="width: 100%; text-align: right; font-size: larger;"> 
+              x2
+            </div>
             <div class="li-power-top">
               <img class="li-icon li-power-icon" src="/media/steal.png" alt="Roubar" />
-              <div class="li-power-name bloquear">ROUBAR (2)</div>
+              <div class="li-power-name bloquear">ROUBAR</div>
             </div>
             <div class="li-power-desc">Rouba a resposta de outra equipa.</div>
           </div>
 
           <!-- 50:50 -->
           <div class="li-power-card">
+            <div style="width: 100%; text-align: right; font-size: larger;"> 
+              x1
+            </div>
             <div class="li-power-top">
               <img class="li-icon li-power-icon" src="/media/5050.png" alt="50:50" />
-              <div class="li-power-name bloquear">50:50 (1)</div>
+              <div class="li-power-name bloquear">50:50</div>
             </div>
-            <div class="li-power-desc">Descarta 1 vez algumas hipóteses erradas.</div>
+            <div class="li-power-desc">Descarta algumas hipóteses erradas.</div>
           </div>
 
           <!-- BLOQUEAR -->
           <div class="li-power-card">
+            <div style="width: 100%; text-align: right; font-size: larger;"> 
+              x1
+            </div>
             <div class="li-power-top">
               <img class="li-icon li-power-icon" src="/media/stop.png" alt="Bloquear" />
-              <div class="li-power-name bloquear">BLOQUEAR (1)</div>
+              <div class="li-power-name bloquear">BLOQUEAR</div>
             </div>
-            <div class="li-power-desc">Impede 1 vez outra equipa de responder.</div>
+            <div class="li-power-desc">Impede outra equipa de responder.</div>
           </div>
         </div>
       </div>
@@ -1087,6 +1112,7 @@
     </div>
   </div>
 </div>
+
 
 
         </div>

@@ -29,6 +29,9 @@ const statusText = document.getElementById("statusText");
 const scoreValue = document.getElementById("scoreValue");
 const powerButtons = document.querySelectorAll(".power-btn");
 const powersContainer = document.getElementById("powersContainer");
+
+
+
 if (powersContainer) {
   powersContainer.style.display = "none"; // escondido ao entrar no jogo
 }
@@ -40,6 +43,11 @@ const overlay = document.getElementById("overlay");
 const overlayBackdrop = document.getElementById("overlayBackdrop");
 const overlayDialog = document.getElementById("overlayDialog");
 const overlayContent = document.getElementById("overlayContent");
+
+
+const mazeCanvas = document.getElementById("mazeCanvas");
+const mazeTip = document.getElementById("mazeTip");
+const mazeControls = document.getElementById("mazeControls");
 
 // estado dos poderes
 const STEAL_MAX = 2; // nº máximo de vezes que podes roubar no jogo
@@ -55,10 +63,26 @@ let answeredThisQuestion = false;
 let currentQuestionType = null;
 let isBlockedThisQuestion = false;
 let usedStealThisQuestion = false;
-
+let maze = null;
+let myPos = null;
+let mazeCtx = null;
+let isDragging = false;
 // lista de equipas conhecida (para seleccionar alvo)
 let knownTeams = [];
 let currentBlockedTeamIds = [];
+let myAvatarSrc = null;
+
+const MAZE_PLAYER_IMG_SRC = "/media/branco.png";
+const MAZE_GOAL_IMG_SRC   = "/media/head.png";
+
+const mazePlayerImg = new Image();
+mazePlayerImg.src = MAZE_PLAYER_IMG_SRC;
+
+const mazeGoalImg = new Image();
+mazeGoalImg.src = MAZE_GOAL_IMG_SRC;
+
+
+
 // helpers overlay
 function closeOverlay() {
   overlay.style.display = "none";
@@ -107,6 +131,32 @@ function showStateOverlay(title, subtitle) {
   stateOverlayTitle.textContent = title || "";
   stateOverlaySubtitle.textContent = subtitle || "";
   stateOverlay.style.display = "flex";
+}
+function step(dx, dy) {
+  if (!maze || !myPos) return;
+  const nx = myPos.x + dx;
+  const ny = myPos.y + dy;
+
+  if (canMove(nx, ny)) {
+    myPos = { x: nx, y: ny };
+    drawMazeTeam();
+    sendPos();
+    tryFinish();
+  }
+}
+
+function bindMazeArrows() {
+  if (!mazeControls) return;
+  const btns = mazeControls.querySelectorAll("[data-dir]");
+  btns.forEach(btn => {
+    btn.onclick = () => {
+      const dir = btn.dataset.dir;
+      if (dir === "up") step(0, -1);
+      if (dir === "down") step(0, 1);
+      if (dir === "left") step(-1, 0);
+      if (dir === "right") step(1, 0);
+    };
+  });
 }
 
 function hideStateOverlay() {
@@ -182,6 +232,146 @@ function showTeamChooser(titleText, descriptionText, onChoose) {
 
   overlay.style.display = "flex";
 }
+
+function drawMazeTeam() {
+  if (!maze || !mazeCtx) return;
+  const { grid, cellSize, goal } = maze;
+
+  mazeCtx.clearRect(0, 0, mazeCanvas.width, mazeCanvas.height);
+
+  // background
+  mazeCtx.fillStyle = "#0b1020";
+  mazeCtx.fillRect(0, 0, mazeCanvas.width, mazeCanvas.height);
+
+  // walls
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[0].length; x++) {
+      if (grid[y][x] === 1) {
+        mazeCtx.fillStyle = "#334155";
+        mazeCtx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+      }
+    }
+  }
+
+  // goal
+  mazeCtx.fillStyle = "#22c55e";
+  mazeCtx.fillRect(goal.x*cellSize, goal.y*cellSize, cellSize, cellSize);
+
+  // player dot (you can replace with image later)
+  const cx = myPos.x*cellSize + cellSize/2;
+  const cy = myPos.y*cellSize + cellSize/2;
+  mazeCtx.beginPath();
+  mazeCtx.arc(cx, cy, Math.min(12, cellSize*0.4), 0, Math.PI*2);
+  mazeCtx.fillStyle = "#facc15";
+  mazeCtx.fill();
+}
+
+
+
+function cellFromTouch(clientX, clientY) {
+  const rect = mazeCanvas.getBoundingClientRect();
+  const x = Math.floor((clientX - rect.left) / maze.cellSize);
+  const y = Math.floor((clientY - rect.top) / maze.cellSize);
+  return { x, y };
+}
+
+function canMove(x, y) {
+  if (!maze) return false;
+  if (y < 0 || x < 0 || y >= maze.grid.length || x >= maze.grid[0].length) return false;
+  return maze.grid[y][x] === 0;
+}
+
+let lastSent = 0;
+function sendPos() {
+  const now = Date.now();
+  if (now - lastSent > 80) {
+    socket.emit("team:mazePos", { code: gameCode, teamId, x: myPos.x, y: myPos.y });
+    lastSent = now;
+  }
+}
+
+function tryFinish() {
+  if (myPos.x === maze.goal.x && myPos.y === maze.goal.y) {
+    socket.emit("team:mazeFinished", { code: gameCode, teamId });
+  }
+}
+
+function moveTo(clientX, clientY) {
+  const { x, y } = cellFromTouch(clientX, clientY);
+  if (canMove(x, y)) {
+    myPos = { x, y };
+    drawMazeTeam();
+    sendPos();
+    tryFinish();
+  }
+}
+
+function bindMazeInput() {
+  mazeCanvas.ontouchstart = (e) => { isDragging = true; const t=e.touches[0]; moveTo(t.clientX, t.clientY); };
+  mazeCanvas.ontouchmove  = (e) => { if (!isDragging) return; const t=e.touches[0]; moveTo(t.clientX, t.clientY); };
+  mazeCanvas.ontouchend   = () => { isDragging = false; };
+
+  mazeCanvas.onmousedown  = (e) => { isDragging = true; moveTo(e.clientX, e.clientY); };
+  mazeCanvas.onmousemove  = (e) => { if (isDragging) moveTo(e.clientX, e.clientY); };
+  window.onmouseup        = () => { isDragging = false; };
+}
+
+const bonusMazeArea = document.getElementById("bonusMazeArea");
+
+socket.on("maze:start", ({ grid, cellSize, start, goal }) => {
+  if (powersContainer) powersContainer.style.display = "none";
+  if (optionsContainer) {
+    optionsContainer.innerHTML = "";
+    optionsContainer.style.display = "none";
+  }
+
+  maze = { grid, cellSize, start, goal };
+  myPos = { x: start.x, y: start.y }; // FIX
+
+  mazeCanvas.width = grid[0].length * cellSize;
+  mazeCanvas.height = grid.length * cellSize;
+  mazeCtx = mazeCanvas.getContext("2d");
+
+  if (bonusMazeArea) bonusMazeArea.style.display = "block";
+  mazeCanvas.style.display = "block";
+  if (mazeControls) mazeControls.style.display = "block";
+  if (mazeTip) mazeTip.style.display = "block";
+
+  bindMazeArrows();
+  drawMazeTeam();
+  sendPos();
+});
+
+
+socket.on("maze:results", ({ winnerId, ranking }) => {
+  // feedback imediato à equipa
+  if (teamId && winnerId) {
+    if (teamId === winnerId) {
+      showStateOverlay("GANHASTE O BÓNUS!", "+20 pontos");
+      if (statusText) statusText.textContent = "🏁 Foste o mais rápido no labirinto!";
+    } else {
+      showStateOverlay("BÓNUS CONCLUÍDO", "Outra equipa chegou primeiro.");
+      if (statusText) statusText.textContent = "🏁 Desta vez não foi a tua equipa.";
+    }
+  }
+
+  maze = null;
+
+  if (mazeCanvas) mazeCanvas.style.display = "none";
+  if (mazeControls) mazeControls.style.display = "none";
+  if (mazeTip) mazeTip.style.display = "none";
+  if (bonusMazeArea) bonusMazeArea.style.display = "none";
+
+  if (optionsContainer) optionsContainer.style.display = "block";
+  if (powersContainer) powersContainer.style.display = "flex";
+
+  // opcional: esconder automaticamente o overlay após 2s
+  setTimeout(() => hideStateOverlay(), 2000);
+});
+
+
+
+
 
 // pré-preencher código
 if (gameCodeInput && gameCode) {
@@ -288,7 +478,8 @@ socket.on("joinError", (msg) => {
 socket.on("team:joined", (team) => {
   console.log("team:joined", team);
   teamId = team.id;
-
+  myAvatarSrc = team.avatar || null;
+  myMazeAvatarImg = null;
   if (joinFormDiv) joinFormDiv.style.display = "none";
   if (teamAreaDiv) teamAreaDiv.style.display = "block";
 
@@ -743,7 +934,7 @@ socket.on("team:showResults", ({ type, correctIndex, correctNumber, results }) =
     // acertou (normal ou via steal)
     if (myResult && (myResult.correct || myResult.correctViaSteal)) {
       if (myResult.correctViaSteal) {
-        statusText.textContent = "🕵️ Acertaste usando o poder de roubar!";
+        statusText.textContent = "🕵️ Acertaste ao usar o poder de roubar!";
       } else {
         statusText.textContent = "Acertaste! 🎉";
       }
@@ -760,14 +951,39 @@ socket.on("team:showResults", ({ type, correctIndex, correctNumber, results }) =
     statusText.textContent = "Falhaste!";
   }
 
-  if (type === "approximation") {
-    if (myResult) {
-      statusText.textContent = `A tua resposta: ${myResult.answer} | Distância: ${myResult.distance}`;
-    } else {
-      // não enviou palpite
-      statusText.textContent = "Sem resposta (acabou o tempo).";
-    }
+ if (type === "approximation") {
+  const parts = [];
+
+  // mostrar sempre o valor correto
+  if (typeof correctNumber === "number") {
+    parts.push(`✅ Resposta correta: ${correctNumber}`);
   }
+
+  // o teu resultado (se respondeste)
+  if (myResult) {
+    if (typeof myResult.answer !== "undefined") {
+      parts.push(`A tua resposta: ${myResult.answer}`);
+    }
+    if (typeof myResult.distance !== "undefined") {
+      parts.push(`Distância: ${myResult.distance}`);
+    }
+
+    // estados de vitória/roubo
+    if (myResult.winner) {
+      parts.push(`🏆 Foste a equipa mais próxima! (+10)`);
+    } else if (myResult.winnerViaSteal) {
+      parts.push(`🕵️ Roubo CERTO! Ganhaste os pontos do vencedor (+10)`);
+    } else if (myResult.stealFail) {
+      parts.push(`🕵️ Roubo FALHOU. Sem pontos nesta pergunta.`);
+    }
+  } else {
+    // não enviou palpite nem usou roubo
+    parts.push(`Sem resposta (acabou o tempo).`);
+  }
+
+  statusText.textContent = parts.join(" | ");
+}
+
 });
 
 

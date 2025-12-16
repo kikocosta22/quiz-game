@@ -490,6 +490,20 @@ background: rgb(49, 49, 49, 0.8);
           <span class="state">Disponível</span>
         </div>
       </div>
+<canvas id="mazeCanvas" style="display:none; width:100%; border-radius:14px;"></canvas>
+
+<div id="mazeControls" style="display:none; margin: 14px auto 0; width: 200px;">
+  <div style="display:flex; justify-content:center;">
+    <button class="maze-btn" data-dir="up">⬆️</button>
+  </div>
+  <div style="display:flex; justify-content:space-between; margin-top:8px;">
+    <button class="maze-btn" data-dir="left">⬅️</button>
+    <button class="maze-btn" data-dir="right">➡️</button>
+  </div>
+  <div style="display:flex; justify-content:center; margin-top:8px;">
+    <button class="maze-btn" data-dir="down">⬇️</button>
+  </div>
+</div>
 
       <div id="optionsContainer"></div>
     </div>

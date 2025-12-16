@@ -289,6 +289,15 @@
           <button id="revealAnswerBtn" disabled>Revelar resposta</button>
           <button id="nextQuestionBtn" disabled>Próxima pergunta</button>
         </div>
+<div style="margin-top:16px; padding:12px; border:1px solid rgba(255,255,255,.08); border-radius:12px;">
+  <div style="font-weight:700; margin-bottom:8px;">Bonus Round (Labirinto)</div>
+  <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+    <input id="mazeIndexInput" type="number" min="1" placeholder="Ronda Nº" style="width:120px;">
+    <button id="setMazeBtn">Marcar</button>
+    <button id="clearMazeBtn">Remover</button>
+    <span id="mazeRoundsInfo" style="opacity:.8;"></span>
+  </div>
+</div>
 
         <p id="hostStatus"></p>
       </div>

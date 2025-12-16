@@ -16,6 +16,11 @@ const gameCodeDisplay = document.getElementById("gameCodeDisplay");
 const linksDiv = document.getElementById("links");
 const teamsList = document.getElementById("teamsList");
 const hostStatus = document.getElementById("hostStatus");
+const mazeIndexInput = document.getElementById("mazeIndexInput");
+const setMazeBtn = document.getElementById("setMazeBtn");
+const clearMazeBtn = document.getElementById("clearMazeBtn");
+const mazeRoundsInfo = document.getElementById("mazeRoundsInfo");
+
 
 function updateLinks() {
   if (!code) {
@@ -100,6 +105,17 @@ closeAnswersBtn.addEventListener("click", () => {
   if (!code) return;
   socket.emit("host:forceCloseAnswers", { code });
 });
+
+setMazeBtn?.addEventListener("click", () => {
+  const idx = (Number(mazeIndexInput.value) || 1) - 1;
+  socket.emit("host:setMazeRound", { code, index: idx });
+});
+
+clearMazeBtn?.addEventListener("click", () => {
+  const idx = (Number(mazeIndexInput.value) || 1) - 1;
+  socket.emit("host:clearMazeRound", { code, index: idx });
+});
+
 
 revealAnswerBtn.addEventListener("click", () => {
   if (!code) return;
@@ -219,7 +235,11 @@ socket.on("host:phaseState", ({ phase, index, total }) => {
   applyPhaseState(phase);
 });
 
-
+socket.on("host:mazeRoundsUpdated", (arr) => {
+  mazeRoundsInfo.textContent = arr.length
+    ? `Marcadas: ${arr.map(i => i + 1).join(", ")}`
+    : "Nenhuma marcada.";
+});
 
 socket.on("joinError", (msg) => {
   alert("Erro: " + msg);

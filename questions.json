@@ -24,7 +24,7 @@
     "type": "single",
     "questionText": "Como se chama este utensilio?",
     "questionMedia": {
-      "type": "none",
+      "type": "video",
       "url": "/media/sample-5s.mp4"
     },
     "options": [
