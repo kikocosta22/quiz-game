@@ -2,18 +2,18 @@
   {
     "id": 1,
     "type": "single",
-    "questionText": "Como se chama este utensilio?",
+    "questionText": "Qual foi a palavra do ano 2025 em Portugal?",
     "questionMedia": {
       "type": "video",
       "url": "/media/sample-5s.mp4"
     },
     "options": [
-      { "type": "text", "value": "Microscopio" },
-      { "type": "text", "value": "Batedeira" },
-      { "type": "text", "value": "Triuradora" },
-      { "type": "text", "value": "Garfo" }
+      { "type": "text", "value": "Flotilha" },
+      { "type": "text", "value": "Apagão" },
+      { "type": "text", "value": "Agente" },
+      { "type": "text", "value": "Emigração" }
     ],
-    "correctIndex": 0,
+    "correctIndex": 1,
     "explanation": {
   "type": "video",
   "value": "/media/example2.mp4"
@@ -22,18 +22,18 @@
    {
     "id": 2,
     "type": "single",
-    "questionText": "Como se chama este utensilio?",
+    "questionText": "Como se chama a empresa que burlou o Malafaya?",
     "questionMedia": {
-      "type": "video",
+      "type": "image",
       "url": "/media/sample-5s.mp4"
     },
     "options": [
-      { "type": "image", "value": "/media/head.png" },
-      { "type": "image", "value": "/media/logo.png" },
-      { "type": "image", "value": "/media/background.png" },
-      { "type": "image", "value": "/media/ronaldo.jpg" }
+      { "type": "text", "value": "Feira Travel" },
+      { "type": "text", "value": "Media Travel" },
+      { "type": "text", "value": "Travel Great" },
+      { "type": "text", "value": "The Travel Maker" }
     ],
-    "correctIndex": 0,
+    "correctIndex": 3,
     "explanation": {
   "type": "video",
   "value": "/media/example2.mp4"

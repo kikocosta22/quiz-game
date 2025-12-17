@@ -147,17 +147,35 @@ function step(dx, dy) {
 
 function bindMazeArrows() {
   if (!mazeControls) return;
+
   const btns = mazeControls.querySelectorAll("[data-dir]");
-  btns.forEach(btn => {
-    btn.onclick = () => {
-      const dir = btn.dataset.dir;
-      if (dir === "up") step(0, -1);
-      if (dir === "down") step(0, 1);
-      if (dir === "left") step(-1, 0);
-      if (dir === "right") step(1, 0);
-    };
+
+  const move = (dir) => {
+    if (dir === "up") step(0, -1);
+    if (dir === "down") step(0, 1);
+    if (dir === "left") step(-1, 0);
+    if (dir === "right") step(1, 0);
+  };
+
+  btns.forEach((btn) => {
+    // Mobile (iOS/Android): usar touchstart e bloquear comportamento default (zoom)
+    btn.addEventListener(
+      "touchstart",
+      (e) => {
+        e.preventDefault(); // <- isto é o que evita o double-tap zoom
+        move(btn.dataset.dir);
+      },
+      { passive: false } // obrigatório para o preventDefault funcionar em mobile
+    );
+
+    // Desktop / fallback
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      move(btn.dataset.dir);
+    });
   });
 }
+
 
 function hideStateOverlay() {
   if (!stateOverlay) return;
