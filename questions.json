@@ -49,15 +49,15 @@
      "url": ""
     },
      "options": [
-      { "type": "image", "value": "/media/mourao3.png" },
-      { "type": "image", "value": "/media/mourao3.png" },
-      { "type": "image", "value": "/media/mourao3.png" },
-      { "type": "image", "value": "/media/mourao3.png" }
+      { "type": "image", "value": "/media/gif1.GIF" },
+      { "type": "image", "value": "/media/gif2.GIF" },
+      { "type": "image", "value": "/media/gif3.GIF" },
+      { "type": "image", "value": "/media/gif4.GIF" }
     ],
-    "correctIndex": 3,
+    "correctIndex": 1,
     "explanation": {
-      "type": "text",
-      "value": "CR7 nasceu em 1985."
+      "type": "none",
+      "value": ""
     }
   },
   {
@@ -103,12 +103,96 @@
   {
     "id": 6,
     "type": "approximation",
-    "questionText": "Quantos posts ",
-    "questionMedia": { "type": "none", "url": "" },
-    "correctNumber": 1985,
+    "questionText": "Quantos tempo demorava o Kiko para jogar padel desde o momento que saía de casa até chegar ao clube? (em minutos)",
+    "questionMedia": { "type": "image", "url": "/media/mapa.png" },
+    "correctNumber": 105,
     "explanation": {
-      "type": "text",
-      "value": "CR7 nasceu em 1985."
+      "type": "none",
+      "value": ""
     }
+  },
+    {
+    "id": 7,
+    "type": "single",
+    "questionText": "De que terra é a namorada do Chousa?",
+    "questionMedia": {
+      "type": "image",
+      "url": "/media/chousa.png"
+    },
+    "options": [
+      { "type": "text", "value": "Vila Nova de Foz Côa" },
+      { "type": "text", "value": "Moncorvo" },
+      { "type": "text", "value": "Arouca" },
+      { "type": "text", "value": "Albergaria a velha" }
+    ],
+    "correctIndex": 0,
+    "explanation": {
+  "type": "video",
+  "value": "/media/chousanamu.jpg"
+}
+  },
+
+   {
+    "id": 8,
+    "type": "single",
+  "questionText": "Quem é que está a dar palmadas no cu neste vídeo?",
+    "questionMedia": {
+      "type": "video",
+      "url": "/media/cu1.mp4"
+    },
+    "options": [
+      { "type": "text", "value": "Vila Nova de Foz Côa" },
+      { "type": "text", "value": "Moncorvo" },
+      { "type": "text", "value": "Arouca" },
+      { "type": "text", "value": "Albergaria a velha" }
+    ],
+    "correctIndex": 0,
+    "explanation": {
+  "type": "video",
+  "value": "/media/cu.MP4"
+}
+  },
+  {
+    "id": 9,
+    "type": "single",
+  "questionText": "A quem pertence este Spotify Top Songs 2025?",
+    "questionMedia": {
+      "type": "image",
+      "url": "/media/spotify.jpg"
+    },
+    "options": [
+      { "type": "text", "value": "Afonso Cavadas" },
+      { "type": "text", "value": "António Malafaya" },
+      { "type": "text", "value": "Gonçalo Cavadas" },
+      { "type": "text", "value": "Miguel Chousal" }
+    ],
+    "correctIndex": 2,
+    "explanation": {
+  "type": "image",
+  "value": "/media/spotify.jpg"
+}
+  },
+   {
+    "id": 10,
+    "type": "single",
+    "questionText": "Quantas viagens de Uber o Branco pagou com o corpo?",
+    "questionMedia": {
+      "type": "image",
+      "url": "/media/branco2.png"
+    },
+    "options": [
+      { "type": "text", "value": "0" },
+      { "type": "text", "value": "1" },
+      { "type": "text", "value": "5" },
+      { "type": "text", "value": "15" }
+    ],
+    "correctIndex": 2,
+    "explanation": {
+  "type": "image",
+  "value": "/media/branco2.png"
+}
   }
+
+
+
 ]
