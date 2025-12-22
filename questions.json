@@ -29,8 +29,8 @@
     },
     "options": [
       { "type": "text", "value": "Feira Travel" },
-      { "type": "text", "value": "Media Travel" },
-      { "type": "text", "value": "Travel Great" },
+      { "type": "text", "value": "he Media Travel" },
+      { "type": "text", "value": "The Travel Great" },
       { "type": "text", "value": "The Travel Maker" }
     ],
     "correctIndex": 3,
@@ -80,10 +80,11 @@
   "value": "/media/mourao2.jpeg"
 }
   },
+ 
   {
     "id": 5,
     "type": "single",
-    "questionText": "Que cidade é esta?",
+    "questionText": "Quem foi a pessoa que mandou mais mensagens no grupo em 2025?",
     "questionMedia": {
       "type": "image",
       "url": "/media/porto.jpg"
@@ -127,7 +128,7 @@
     ],
     "correctIndex": 0,
     "explanation": {
-  "type": "video",
+  "type": "image",
   "value": "/media/chousanamu.jpg"
 }
   },
@@ -141,10 +142,10 @@
       "url": "/media/cu1.mp4"
     },
     "options": [
-      { "type": "text", "value": "Vila Nova de Foz Côa" },
-      { "type": "text", "value": "Moncorvo" },
-      { "type": "text", "value": "Arouca" },
-      { "type": "text", "value": "Albergaria a velha" }
+      { "type": "text", "value": "Afonso" },
+      { "type": "text", "value": "Calejo" },
+      { "type": "text", "value": "Kiko" },
+      { "type": "text", "value": "Vasco" }
     ],
     "correctIndex": 0,
     "explanation": {
@@ -181,17 +182,418 @@
       "url": "/media/branco2.png"
     },
     "options": [
-      { "type": "text", "value": "0" },
       { "type": "text", "value": "1" },
+      { "type": "text", "value": "2" },
       { "type": "text", "value": "5" },
-      { "type": "text", "value": "15" }
+      { "type": "text", "value": "7" }
     ],
     "correctIndex": 2,
     "explanation": {
   "type": "image",
   "value": "/media/branco2.png"
 }
+  },
+{
+    "id": 11,
+    "type": "single",
+    "questionText": "Quantas pessoas já recorreram a tratamento capilar deste grupo?",
+    "questionMedia": {
+      "type": "image",
+      "url": "/media/meneses.PNG"
+    },
+    "options": [
+      { "type": "text", "value": "3" },
+      { "type": "text", "value": "4" },
+      { "type": "text", "value": "5" },
+      { "type": "text", "value": "6" }
+    ],
+    "correctIndex": 2,
+    "explanation": {
+  "type": "image",
+  "value": "/media/meneses.PNG"
+}
+  },
+  {
+    "id": 12,
+    "type": "single",
+    "questionText": "Qual é o gelado que o Afonso está a comer?",
+    "questionMedia": {
+      "type": "image",
+      "url": "/media/gelado2.png"
+    },
+    "options": [
+      { "type": "text", "value": "Cornetto Chocolate" },
+      { "type": "text", "value": "Caramel & Nuts" },
+      { "type": "text", "value": "Magnum Sandwich" },
+      { "type": "text", "value": "Magnum Amêndoa" }
+    ],
+    "correctIndex": 3,
+    "explanation": {
+  "type": "image",
+  "value": "/media/gelado.png"
+}
+  },
+  {
+    "id": 13,
+    "type": "single",
+    "questionText": "Qual foi a palavra portuguesa escolhida para o ano de 2025?",
+    "questionMedia": {
+      "type": "image",
+      "url": "/media/gelado2.png"
+    },
+    "options": [
+      { "type": "text", "value": "Apagão" },
+      { "type": "text", "value": "Flotilha" },
+      { "type": "text", "value": "Emigração" },
+      { "type": "text", "value": "Agente" }
+    ],
+    "correctIndex": 0,
+    "explanation": {
+  "type": "image",
+  "value": "/media/gelado.png"
+}
+  },
+
+    {
+    "id": 14,
+    "type": "single",
+    "questionText": "Quem enviou e recebeu, respetivamente, esta mensagem no Rotos?",
+    "questionMedia": {
+      "type": "image",
+      "url": "/media/gelado2.png"
+    },
+    "options": [
+      { "type": "text", "value": "Miguel para Branco" },
+      { "type": "text", "value": "Chousa para Gonçalo" },
+      { "type": "text", "value": "Calejo para Chousa" },
+      { "type": "text", "value": "Miguel para Chousa" }
+    ],
+    "correctIndex": 2,
+    "explanation": {
+  "type": "image",
+  "value": "/media/gelado.png"
+}
+  },
+
+    {
+    "id": 15,
+    "type": "single",
+    "questionText": "Qual é a nova função do Bernardo na Lactogal?",
+    "questionMedia": {
+      "type": "image",
+      "url": "/media/gelado2.png"
+    },
+    "options": [
+      { "type": "text", "value": "Strategy and Planning Specialist" },
+      { "type": "text", "value": "Demand Analyst" },
+      { "type": "text", "value": "Performance and Business Support" },
+      { "type": "text", "value": "Dairy Data Analyst" }
+    ],
+    "correctIndex": 0,
+    "explanation": {
+  "type": "image",
+  "value": "/media/gelado.png"
+}
+  },
+  {
+    "id": 16,
+    "type": "approximation",
+    "questionText": "Qual o preço do telemóvel do Pedro Meneses na loja oficial da Apple?",
+    "questionMedia": { "type": "image", "url": "/media/mapa.png" },
+    "correctNumber": 1749,
+    "explanation": {
+      "type": "none",
+      "value": ""
+    }
+  },
+  {
+    "id": 17,
+    "type": "single",
+  "questionText": "Quando é a data da última publicação do Sonecas na sua conta principal?",
+    "questionMedia": {
+      "type": "image",
+      "url": "/media/gelado2.png"
+    },
+    "options": [
+      { "type": "text", "value": "8 Agosto 2022" },
+      { "type": "text", "value": "9 Fevereiro 2021" },
+      { "type": "text", "value": "10 Dezembro 2019" },
+      { "type": "text", "value": "10 Julho 2018" }
+    ],
+    "correctIndex": 1,
+    "explanation": {
+  "type": "image",
+  "value": "/media/gelado.png"
+}
+  },
+    {
+    "id": 18,
+    "type": "single",
+  "questionText": "Em que mês começa o Calejo a trabalhar na ilha da Dinamarca?",
+    "questionMedia": {
+      "type": "image",
+      "url": "/media/gelado2.png"
+    },
+    "options": [
+      { "type": "text", "value": "Janeiro" },
+      { "type": "text", "value": "Fevereiro" },
+      { "type": "text", "value": "Março" },
+      { "type": "text", "value": "Abril" }
+    ],
+    "correctIndex": 0,
+    "explanation": {
+  "type": "image",
+  "value": "/media/gelado.png"
+}
+  },
+
+
+   {
+    "id": 19,
+    "type": "single",
+  "questionText": "Quantos kms fizeram o Manu e Chousa na primeira noite em Islantilla?",
+    "questionMedia": {
+      "type": "image",
+      "url": "/media/gelado2.png"
+    },
+    "options": [
+         { "type": "text", "value": "6" },
+      { "type": "text", "value": "12" },
+      { "type": "text", "value": "8" },
+      { "type": "text", "value": "10" }
+    ],
+    "correctIndex": 2,
+    "explanation": {
+  "type": "image",
+  "value": "/media/gelado.png"
+}
+  },
+
+  {
+    "id": 20,
+    "type": "approximation",
+    "questionText": "Quanto dinheiro se gastou em alcool no último almoço em Galafure?",
+    "questionMedia": { "type": "image", "url": "/media/mapa.png" },
+    "correctNumber": 216.6,
+    "explanation": {
+      "type": "none",
+      "value": ""
+    }
+  },
+    {
+    "id": 21,
+    "type": "single",
+  "questionText": "A que jogador pertence este percurso no mundo do futebol?",
+    "questionMedia": {
+      "type": "image",
+      "url": "/media/gelado2.png"
+    },
+    "options": [
+      { "type": "text", "value": "Derlei" },
+      { "type": "text", "value": "Maniche" },
+      { "type": "text", "value": "Costinha" },
+      { "type": "text", "value": "Pedro Mendes" }
+    ],
+    "correctIndex": 2,
+    "explanation": {
+  "type": "image",
+  "value": "/media/gelado.png"
+}
+  },
+
+   {
+    "id": 22,
+    "type": "single",
+  "questionText": "Qual foi o motivo da discussão entre Afonso e Chousa nas últimas férias de Verão?",
+    "questionMedia": {
+      "type": "image",
+      "url": "/media/gelado2.png"
+    },
+    "options": [
+         { "type": "text", "value": "Afonso prometeu algo e não cumpriu" },
+      { "type": "text", "value": "Falta de empenho de Chousa em tarefas" },
+      { "type": "text", "value": "Secador estragado" },
+      { "type": "text", "value": "Torneio Padel & Caricas" }
+    ],
+    "correctIndex": 2,
+    "explanation": {
+  "type": "image",
+  "value": "/media/gelado.png"
+}
+  },
+   {
+    "id": 23,
+    "type": "single",
+  "questionText": "Esta mulher gerada com AI é a versão feminina de quem?",
+    "questionMedia": {
+      "type": "image",
+      "url": "/media/gelado2.png"
+    },
+    "options": [
+         { "type": "text", "value": "Branco" },
+      { "type": "text", "value": "Malafaya" },
+      { "type": "text", "value": "Sonecas" },
+      { "type": "text", "value": "Curval" }
+    ],
+    "correctIndex": 3,
+    "explanation": {
+  "type": "image",
+  "value": "/media/gelado.png"
+}
+  },
+
+     {
+    "id": 24,
+    "type": "single",
+  "questionText": "Onde foi tirada esta foto onde é captado Miguel Modo Micróbio a carregar a pilha?",
+    "questionMedia": {
+      "type": "image",
+      "url": "/media/gelado2.png"
+    },
+    "options": [
+         { "type": "text", "value": "Rally Tascas Galafura" },
+      { "type": "text", "value": "Golegã" },
+      { "type": "text", "value": "Passagem de ano 2024" },
+      { "type": "text", "value": "Voltar de jantar com os pais da Joana" }
+    ],
+    "correctIndex": 2,
+    "explanation": {
+  "type": "image",
+  "value": "/media/gelado.png"
+}
+  },
+
+   {
+    "id": 25,
+    "type": "single",
+  "questionText": "De quem são estas mamas?",
+    "questionMedia": {
+      "type": "image",
+      "url": "/media/gelado2.png"
+    },
+    "options": [
+         { "type": "text", "value": "bianhqueiros" },
+      { "type": "text", "value": "franciscassuncao_" },
+      { "type": "text", "value": "vaneza.99 " },
+      { "type": "text", "value": "inesvdlopes" }
+    ],
+    "correctIndex": 2,
+    "explanation": {
+  "type": "image",
+  "value": "/media/gelado.png"
+}
+  },
+
+     {
+    "id": 26,
+    "type": "single",
+  "questionText": "Quantas raparigas comeu o Mourão na noite do Mötao?",
+    "questionMedia": {
+      "type": "image",
+      "url": "/media/gelado2.png"
+    },
+    "options": [
+         { "type": "text", "value": "0" },
+      { "type": "text", "value": "1" },
+      { "type": "text", "value": "2" },
+      { "type": "text", "value": "3" }
+    ],
+    "correctIndex": 0,
+    "explanation": {
+  "type": "image",
+  "value": "/media/gelado.png"
+}
+  },
+
+  {
+    "id": 27,
+    "type": "single",
+    "questionText": "Em que objetos está o Chousa a dormir apoiado?",
+    "questionMedia": {
+      "type": "image",
+      "url": "/media/gelado2.png"
+    },
+    "options": [
+         { "type": "text", "value": "Sofá e cadeira" },
+      { "type": "text", "value": "Sofá e mesa" },
+      { "type": "text", "value": "Sofá e mochila" },
+      { "type": "text", "value": "Sofá e mala" }
+    ],
+    "correctIndex": 1,
+    "explanation": {
+  "type": "image",
+  "value": "/media/gelado.png"
+}
+  },
+
+   {
+    "id": 28,
+    "type": "single",
+  "questionText": "De quem são estes cus?",
+    "questionMedia": {
+      "type": "image",
+      "url": "/media/gelado2.png"
+    },
+    "options": [
+         { "type": "text", "value": "Pilau e Curval" },
+      { "type": "text", "value": "Gonçalo Figueiredo e Malafaya" },
+      { "type": "text", "value": "Bernardo e Sonecas" },
+      { "type": "text", "value": "Malafaya e Manu Pobre" }
+    ],
+    "correctIndex": 2,
+    "explanation": {
+  "type": "image",
+  "value": "/media/gelado.png"
+}
   }
+,
+
+  {
+    "id": 29,
+    "type": "single",
+  "questionText": "Qual foi o motivo em especial para a realização deste vídeo?",
+    "questionMedia": {
+      "type": "video",
+      "url": "/media/cavadas.mp4"
+    },
+    "options": [
+         { "type": "text", "value": "Pedido de casamento de um casal" },
+      { "type": "text", "value": "Dia dos namorados" },
+      { "type": "text", "value": "Dia da mulher" },
+      { "type": "text", "value": "Dia do beijo" }
+    ],
+    "correctIndex": 1,
+    "explanation": {
+  "type": "image",
+  "value": "/media/gelado.png"
+}
+  },
+
+  {
+    "id": 30,
+    "type": "single",
+  "questionText": "O Mourão está prestes a entrar neste video. Que frase vai ele dizer repetidamente?",
+    "questionMedia": {
+      "type": "image",
+      "url": "/media/gelado2.png"
+    },
+    "options": [
+         { "type": "text", "value": "Quero fumar um iqos" },
+      { "type": "text", "value": "Sai-me da frente" },
+      { "type": "text", "value": "Tou todo fodido!" },
+      { "type": "text", "value": "Tens de ter calma." }
+    ],
+    "correctIndex": 2,
+    "explanation": {
+  "type": "image",
+  "value": "/media/gelado.png"
+}
+  }
+
+  
+
+
+
 
 
 

@@ -90,21 +90,21 @@ return {
 };
 }
 
-// Decide which maze to use based on the question index that comes AFTER the bonus
-function createMazeForIndex(index) {
-  // index = pergunta 0-based que vem a seguir ao bónus
-  if (index === 1) return createMazeVariant1(); // entre ronda 1 e 2
-  if (index === 2) return createMazeVariant2(); // entre ronda 2 e 3
-  // fallback
-  return createMazeVariant1();
-}
-
-
+// // Decide which maze to use based on the question index that comes AFTER the bonus
 // function createMazeForIndex(index) {
-//   if (index === 9)  return createMazeVariant1(); // bónus da ronda 10
-//   if (index === 19) return createMazeVariant2(); // bónus da ronda 20
+//   // index = pergunta 0-based que vem a seguir ao bónus
+//   if (index === 1) return createMazeVariant1(); // entre ronda 1 e 2
+//   if (index === 2) return createMazeVariant2(); // entre ronda 2 e 3
+//   // fallback
 //   return createMazeVariant1();
 // }
+
+
+function createMazeForIndex(index) {
+  if (index === 9)  return createMazeVariant1(); // bónus da ronda 10
+  if (index === 19) return createMazeVariant2(); // bónus da ronda 20
+  return createMazeVariant1();
+}
 
 function isBonusRound(game, index) {
   return !!game?.mazeRounds?.has(index);
@@ -367,8 +367,8 @@ io.on("connection", (socket) => {
     const code = generateCode();
 
     games[code] = {
-       mazeRounds: new Set([1, 2]), // bónus antes da pergunta 2 e 3 (1-based)
-   //    mazeRounds: new Set([9, 19]), 
+      // mazeRounds: new Set([1, 2]), // bónus antes da pergunta 2 e 3 (1-based)
+       mazeRounds: new Set([9, 19]), 
   mazeState: null,
   mazeIndex: null,             // qual índice de pergunta está associado a ESTE labirinto
        pendingQuestion: null,    // NOVO

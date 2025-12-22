@@ -237,19 +237,19 @@ const r = (cs * PLAYER_SCALE) / 2; // radius = half of the scaled size
 
 socket.on("maze:start", ({ grid, start, goal, bonusIndex }) => {
   // Escolhe tema de imagens conforme o bónus
-  if (typeof bonusIndex === "number" && bonusIndex === 2) {
-    // segundo bónus (entre ronda 2 e 3)
-    applyMazeTheme("bonus2");
-  } else {
-    // qualquer outro bónus usa o tema base
-    applyMazeTheme("bonus1");
-  }
+  // if (typeof bonusIndex === "number" && bonusIndex === 2) {
+  //   // segundo bónus (entre ronda 2 e 3)
+  //   applyMazeTheme("bonus2");
+  // } else {
+  //   // qualquer outro bónus usa o tema base
+  //   applyMazeTheme("bonus1");
+  // }
 
-//   if (typeof bonusIndex === "number" && bonusIndex === 19) {
-//   applyMazeTheme("bonus2");   // bónus da ronda 20
-// } else {
-//   applyMazeTheme("bonus1");   // bónus da ronda 10 (e outros)
-// }
+  if (typeof bonusIndex === "number" && bonusIndex === 19) {
+  applyMazeTheme("bonus2");   // bónus da ronda 20
+} else {
+  applyMazeTheme("bonus1");   // bónus da ronda 10 (e outros)
+}
 
 
 
