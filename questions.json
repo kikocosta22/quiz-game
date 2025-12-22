@@ -25,7 +25,7 @@
     "questionText": "Como se chama a empresa que burlou o Malafaya?",
     "questionMedia": {
       "type": "image",
-      "url": "/media/sample-5s.mp4"
+      "url": "/media/malafaya.PNG"
     },
     "options": [
       { "type": "text", "value": "Feira Travel" },
@@ -35,8 +35,8 @@
     ],
     "correctIndex": 3,
     "explanation": {
-  "type": "video",
-  "value": "/media/example2.mp4"
+  "type": "image",
+  "value": "/media/malafaya.PNG"
 }
   },
 
@@ -63,13 +63,13 @@
   {
     "id": 4,
     "type": "single",
-    "questionText": "Nesta image, o Mourão está a olhar para uma?",
+    "questionText": "Nesta image, o Mourão está a olhar para uma ...?",
     "questionMedia": {
       "type": "image",
      "url": "/media/mourao3.png"
     },
     "options": [
-      { "type": "text", "value": "Vitela" },
+      { "type": "text", "value": "Vitela assada" },
       { "type": "text", "value": "Fatura" },
       { "type": "text", "value": "Imagem de gaja" },
       { "type": "text", "value": "Pizza" }
@@ -87,18 +87,18 @@
     "questionText": "Quem foi a pessoa que mandou mais mensagens no grupo em 2025?",
     "questionMedia": {
       "type": "image",
-      "url": "/media/porto.jpg"
+      "url": "/media/question-mark.png"
     },
     "options": [
-      { "type": "text", "value": "Microscopio" },
-      { "type": "text", "value": "Lupa" },
-      { "type": "text", "value": "Nada" },
-      { "type": "text", "value": "Kylian Mbappé" }
+      { "type": "text", "value": "Vasco" },
+      { "type": "text", "value": "Bernardo" },
+      { "type": "text", "value": "Chousa" },
+      { "type": "text", "value": "Miguel" }
     ],
-    "correctIndex": 0,
+    "correctIndex": 1,
     "explanation": {
-  "type": "video",
-  "value": "/media/example1.mp4"
+  "type": "image",
+  "value": "/media/question-mark.png"
 }
   },
   {
@@ -239,7 +239,7 @@
     "questionText": "Qual foi a palavra portuguesa escolhida para o ano de 2025?",
     "questionMedia": {
       "type": "image",
-      "url": "/media/gelado2.png"
+      "url": "/media/question-mark.png"
     },
     "options": [
       { "type": "text", "value": "Apagão" },
@@ -250,7 +250,7 @@
     "correctIndex": 0,
     "explanation": {
   "type": "image",
-  "value": "/media/gelado.png"
+  "value": "/media/question-mark.png"
 }
   },
 
@@ -260,7 +260,7 @@
     "questionText": "Quem enviou e recebeu, respetivamente, esta mensagem no Rotos?",
     "questionMedia": {
       "type": "image",
-      "url": "/media/gelado2.png"
+      "url": "/media/conversa2.png"
     },
     "options": [
       { "type": "text", "value": "Miguel para Branco" },
@@ -271,7 +271,7 @@
     "correctIndex": 2,
     "explanation": {
   "type": "image",
-  "value": "/media/gelado.png"
+  "value": "/media/conversa.PNG"
 }
   },
 
@@ -281,7 +281,7 @@
     "questionText": "Qual é a nova função do Bernardo na Lactogal?",
     "questionMedia": {
       "type": "image",
-      "url": "/media/gelado2.png"
+      "url": "/media/bernas.PNG"
     },
     "options": [
       { "type": "text", "value": "Strategy and Planning Specialist" },
@@ -292,14 +292,14 @@
     "correctIndex": 0,
     "explanation": {
   "type": "image",
-  "value": "/media/gelado.png"
+  "value": "/media/bernas.PNG"
 }
   },
   {
     "id": 16,
     "type": "approximation",
     "questionText": "Qual o preço do telemóvel do Pedro Meneses na loja oficial da Apple?",
-    "questionMedia": { "type": "image", "url": "/media/mapa.png" },
+    "questionMedia": { "type": "image", "url": "/media/iphone.png" },
     "correctNumber": 1749,
     "explanation": {
       "type": "none",
@@ -312,7 +312,7 @@
   "questionText": "Quando é a data da última publicação do Sonecas na sua conta principal?",
     "questionMedia": {
       "type": "image",
-      "url": "/media/gelado2.png"
+      "url": "/media/sonecas.jpg"
     },
     "options": [
       { "type": "text", "value": "8 Agosto 2022" },
@@ -323,7 +323,7 @@
     "correctIndex": 1,
     "explanation": {
   "type": "image",
-  "value": "/media/gelado.png"
+  "value": "/media/sonecas.jpg"
 }
   },
     {
@@ -332,7 +332,7 @@
   "questionText": "Em que mês começa o Calejo a trabalhar na ilha da Dinamarca?",
     "questionMedia": {
       "type": "image",
-      "url": "/media/gelado2.png"
+      "url": "/media/calejo.PNG"
     },
     "options": [
       { "type": "text", "value": "Janeiro" },
@@ -343,7 +343,7 @@
     "correctIndex": 0,
     "explanation": {
   "type": "image",
-  "value": "/media/gelado.png"
+  "value": "/media/calejo.PNG"
 }
   },
 
@@ -351,10 +351,10 @@
    {
     "id": 19,
     "type": "single",
-  "questionText": "Quantos kms fizeram o Manu e Chousa na primeira noite em Islantilla?",
+  "questionText": "Quantos kms fizeram o Nelo Pobre e Chousa na primeira noite em Islantilla?",
     "questionMedia": {
       "type": "image",
-      "url": "/media/gelado2.png"
+      "url": "/media/chousanelo.PNG"
     },
     "options": [
          { "type": "text", "value": "6" },
@@ -365,7 +365,7 @@
     "correctIndex": 2,
     "explanation": {
   "type": "image",
-  "value": "/media/gelado.png"
+  "value": "/media/chousanelo.PNG"
 }
   },
 
@@ -373,7 +373,7 @@
     "id": 20,
     "type": "approximation",
     "questionText": "Quanto dinheiro se gastou em alcool no último almoço em Galafure?",
-    "questionMedia": { "type": "image", "url": "/media/mapa.png" },
+    "questionMedia": { "type": "image", "url": "/media/fatura1.png" },
     "correctNumber": 216.6,
     "explanation": {
       "type": "none",
@@ -427,7 +427,7 @@
   "questionText": "Esta mulher gerada com AI é a versão feminina de quem?",
     "questionMedia": {
       "type": "image",
-      "url": "/media/gelado2.png"
+      "url": "/media/curvalmulher.PNG"
     },
     "options": [
          { "type": "text", "value": "Branco" },
@@ -438,7 +438,7 @@
     "correctIndex": 3,
     "explanation": {
   "type": "image",
-  "value": "/media/gelado.png"
+  "value": "/media/curvalhomem.jpg"
 }
   },
 
@@ -448,18 +448,18 @@
   "questionText": "Onde foi tirada esta foto onde é captado Miguel Modo Micróbio a carregar a pilha?",
     "questionMedia": {
       "type": "image",
-      "url": "/media/gelado2.png"
+      "url": "/media/microbio.JPG"
     },
     "options": [
          { "type": "text", "value": "Rally Tascas Galafura" },
       { "type": "text", "value": "Golegã" },
       { "type": "text", "value": "Passagem de ano 2024" },
-      { "type": "text", "value": "Voltar de jantar com os pais da Joana" }
+      { "type": "text", "value": "Voltar de jantar fora com os pais da Joana" }
     ],
     "correctIndex": 2,
     "explanation": {
   "type": "image",
-  "value": "/media/gelado.png"
+  "value": "/media/microbio.JPG"
 }
   },
 
@@ -490,7 +490,7 @@
   "questionText": "Quantas raparigas comeu o Mourão na noite do Mötao?",
     "questionMedia": {
       "type": "image",
-      "url": "/media/gelado2.png"
+      "url": "/media/motao.JPG"
     },
     "options": [
          { "type": "text", "value": "0" },
@@ -501,17 +501,17 @@
     "correctIndex": 0,
     "explanation": {
   "type": "image",
-  "value": "/media/gelado.png"
+  "value": "/media/motao.JPG"
 }
   },
 
   {
     "id": 27,
     "type": "single",
-    "questionText": "Em que objetos está o Chousa a dormir apoiado?",
+    "questionText": "Em que objetos está o Chousa a dormir apoiado nesta ocasião?",
     "questionMedia": {
       "type": "image",
-      "url": "/media/gelado2.png"
+      "url": "/media/chousadormir1.jpg"
     },
     "options": [
          { "type": "text", "value": "Sofá e cadeira" },
@@ -521,8 +521,8 @@
     ],
     "correctIndex": 1,
     "explanation": {
-  "type": "image",
-  "value": "/media/gelado.png"
+  "type": "video",
+  "value": "/media/chousadormir.MP4"
 }
   },
 
@@ -532,7 +532,7 @@
   "questionText": "De quem são estes cus?",
     "questionMedia": {
       "type": "image",
-      "url": "/media/gelado2.png"
+      "url": "/media/cus.JPG"
     },
     "options": [
          { "type": "text", "value": "Pilau e Curval" },
@@ -543,7 +543,7 @@
     "correctIndex": 2,
     "explanation": {
   "type": "image",
-  "value": "/media/gelado.png"
+  "value": "/media/cus.JPG"
 }
   }
 ,
@@ -554,7 +554,7 @@
   "questionText": "Qual foi o motivo em especial para a realização deste vídeo?",
     "questionMedia": {
       "type": "video",
-      "url": "/media/cavadas.mp4"
+      "url": "/media/namorados-sem-som.mp4"
     },
     "options": [
          { "type": "text", "value": "Pedido de casamento de um casal" },
@@ -564,8 +564,8 @@
     ],
     "correctIndex": 1,
     "explanation": {
-  "type": "image",
-  "value": "/media/gelado.png"
+  "type": "video",
+  "value": "/media/namorados.MP4"
 }
   },
 
@@ -574,8 +574,8 @@
     "type": "single",
   "questionText": "O Mourão está prestes a entrar neste video. Que frase vai ele dizer repetidamente?",
     "questionMedia": {
-      "type": "image",
-      "url": "/media/gelado2.png"
+      "type": "video",
+      "url": "/media/mourao.MP4"
     },
     "options": [
          { "type": "text", "value": "Quero fumar um iqos" },
@@ -585,8 +585,8 @@
     ],
     "correctIndex": 2,
     "explanation": {
-  "type": "image",
-  "value": "/media/gelado.png"
+  "type": "video",
+  "value": "/media/mourao.MP4"
 }
   }
 
