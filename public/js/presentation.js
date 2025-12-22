@@ -245,6 +245,14 @@ socket.on("maze:start", ({ grid, start, goal, bonusIndex }) => {
     applyMazeTheme("bonus1");
   }
 
+//   if (typeof bonusIndex === "number" && bonusIndex === 19) {
+//   applyMazeTheme("bonus2");   // bónus da ronda 20
+// } else {
+//   applyMazeTheme("bonus1");   // bónus da ronda 10 (e outros)
+// }
+
+
+
   if (lobbyInstructionsDiv) lobbyInstructionsDiv.style.display = "none";
   if (betweenQuestionsDiv) betweenQuestionsDiv.style.display = "none";
   if (powerLogDiv) powerLogDiv.style.display = "none";

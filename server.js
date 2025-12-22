@@ -100,6 +100,12 @@ function createMazeForIndex(index) {
 }
 
 
+// function createMazeForIndex(index) {
+//   if (index === 9)  return createMazeVariant1(); // bónus da ronda 10
+//   if (index === 19) return createMazeVariant2(); // bónus da ronda 20
+//   return createMazeVariant1();
+// }
+
 function isBonusRound(game, index) {
   return !!game?.mazeRounds?.has(index);
 }
@@ -362,6 +368,7 @@ io.on("connection", (socket) => {
 
     games[code] = {
        mazeRounds: new Set([1, 2]), // bónus antes da pergunta 2 e 3 (1-based)
+   //    mazeRounds: new Set([9, 19]), 
   mazeState: null,
   mazeIndex: null,             // qual índice de pergunta está associado a ESTE labirinto
        pendingQuestion: null,    // NOVO

@@ -2,21 +2,21 @@
   {
     "id": 1,
     "type": "single",
-    "questionText": "Qual foi a palavra do ano 2025 em Portugal?",
+    "questionText": "Durante o sexo anal, qual a frase usada pelo Professor Taveira quando está a metê-la?",
     "questionMedia": {
-      "type": "video",
-      "url": "/media/sample-5s.mp4"
+      "type": "image",
+      "url": "/media/taveira1.png"
     },
     "options": [
-      { "type": "text", "value": "Flotilha" },
-      { "type": "text", "value": "Apagão" },
-      { "type": "text", "value": "Agente" },
-      { "type": "text", "value": "Emigração" }
+      { "type": "text", "value": "Tás bem apertada tu!" },
+      { "type": "text", "value": "Não comeces com essas coisas pá!" },
+      { "type": "text", "value": "Oh já me estás a meter nojo..." },
+      { "type": "text", "value": "Vamos lá com calminha?" }
     ],
     "correctIndex": 1,
     "explanation": {
   "type": "video",
-  "value": "/media/example2.mp4"
+  "value": "/media/taveira.mp4"
 }
   },
    {
@@ -42,10 +42,19 @@
 
   {
     "id": 3,
-    "type": "approximation",
-    "questionText": "Em que ano nasceu o Cristiano Ronaldo?",
-    "questionMedia": { "type": "none", "url": "" },
-    "correctNumber": 1985,
+    "type": "single",
+    "questionText": "Qual foi o gif mais usado em 2025?",
+    "questionMedia": {
+      "type": "none",
+     "url": ""
+    },
+     "options": [
+      { "type": "image", "value": "/media/mourao3.png" },
+      { "type": "image", "value": "/media/mourao3.png" },
+      { "type": "image", "value": "/media/mourao3.png" },
+      { "type": "image", "value": "/media/mourao3.png" }
+    ],
+    "correctIndex": 3,
     "explanation": {
       "type": "text",
       "value": "CR7 nasceu em 1985."
@@ -54,21 +63,21 @@
   {
     "id": 4,
     "type": "single",
-    "questionText": "Como se chama este utensilio?",
+    "questionText": "Nesta image, o Mourão está a olhar para uma?",
     "questionMedia": {
       "type": "image",
-      "url": "/media/ronaldo.jpg"
+     "url": "/media/mourao3.png"
     },
     "options": [
-      { "type": "text", "value": "Epa nao faças isso!" },
-      { "type": "text", "value": "Não vais começar com as tuas coisas!" },
-      { "type": "text", "value": "Isto é apertado para caralho..." },
-      { "type": "text", "value": "Tou fodido contigo..." }
+      { "type": "text", "value": "Vitela" },
+      { "type": "text", "value": "Fatura" },
+      { "type": "text", "value": "Imagem de gaja" },
+      { "type": "text", "value": "Pizza" }
     ],
-    "correctIndex": 1,
+    "correctIndex": 3,
    "explanation": {
-  "type": "video",
-  "value": "/media/example2.mp4"
+  "type": "image",
+  "value": "/media/mourao2.jpeg"
 }
   },
   {
@@ -90,5 +99,16 @@
   "type": "video",
   "value": "/media/example1.mp4"
 }
+  },
+  {
+    "id": 6,
+    "type": "approximation",
+    "questionText": "Quantos posts ",
+    "questionMedia": { "type": "none", "url": "" },
+    "correctNumber": 1985,
+    "explanation": {
+      "type": "text",
+      "value": "CR7 nasceu em 1985."
+    }
   }
 ]
