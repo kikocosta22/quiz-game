@@ -29,7 +29,7 @@
     },
     "options": [
       { "type": "text", "value": "Feira Travel" },
-      { "type": "text", "value": "he Media Travel" },
+      { "type": "text", "value": "The Media Travel" },
       { "type": "text", "value": "The Travel Great" },
       { "type": "text", "value": "The Travel Maker" }
     ],
@@ -159,7 +159,7 @@
   "questionText": "A quem pertence este Spotify Top Songs 2025?",
     "questionMedia": {
       "type": "image",
-      "url": "/media/spotify.jpg"
+      "url": "/media/spotify.JPG"
     },
     "options": [
       { "type": "text", "value": "Afonso Cavadas" },
@@ -170,7 +170,7 @@
     "correctIndex": 2,
     "explanation": {
   "type": "image",
-  "value": "/media/spotify.jpg"
+  "value": "/media/spotify.JPG"
 }
   },
    {
@@ -373,7 +373,7 @@
     "id": 20,
     "type": "approximation",
     "questionText": "Quanto dinheiro se gastou em alcool no último almoço em Galafure?",
-    "questionMedia": { "type": "image", "url": "/media/fatura1.png" },
+    "questionMedia": { "type": "image", "url": "/media/fatura.JPG" },
     "correctNumber": 216.6,
     "explanation": {
       "type": "none",
@@ -469,7 +469,7 @@
   "questionText": "De quem são estas mamas?",
     "questionMedia": {
       "type": "image",
-      "url": "/media/gelado2.png"
+      "url": "/media/lopes.jpg"
     },
     "options": [
          { "type": "text", "value": "bianhqueiros" },
@@ -477,10 +477,10 @@
       { "type": "text", "value": "vaneza.99 " },
       { "type": "text", "value": "inesvdlopes" }
     ],
-    "correctIndex": 2,
+    "correctIndex": 3,
     "explanation": {
   "type": "image",
-  "value": "/media/gelado.png"
+  "value": "/media/lopes.jpg"
 }
   },
 

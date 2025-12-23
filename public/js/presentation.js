@@ -32,6 +32,21 @@ const timerLabel      = document.getElementById("timerLabel");
 const timerBarOuter   = document.getElementById("timerBarOuter");
 const timeUpBanner    = document.getElementById("timeUpBanner");
 
+
+const podiumScreen   = document.getElementById("podium-screen");
+const podiumConfetti = document.getElementById("podium-confetti");
+const podiumName1    = document.getElementById("podiumName1");
+const podiumName2    = document.getElementById("podiumName2");
+const podiumName3    = document.getElementById("podiumName3");
+const podiumScore1   = document.getElementById("podiumScore1");
+const podiumScore2   = document.getElementById("podiumScore2");
+const podiumScore3   = document.getElementById("podiumScore3");
+const podiumAvatar1  = document.getElementById("podiumAvatar1");
+const podiumAvatar2  = document.getElementById("podiumAvatar2");
+const podiumAvatar3  = document.getElementById("podiumAvatar3");
+
+
+
 const lobbyQrDiv = document.getElementById("lobby-qr");
 const lobbyQrUrlSpan = document.getElementById("lobby-qr-url");
 const mazeBoard = document.getElementById("mazeBoard");
@@ -149,6 +164,93 @@ function getTeamsForUI() {
   if (!teams.length && lastKnownTeams.length) teams = lastKnownTeams.slice();
   return teams;
 }
+
+
+function hidePodium() {
+  if (podiumScreen) podiumScreen.style.display = "none";
+  if (podiumConfetti) {
+    podiumConfetti.style.display = "none";
+    podiumConfetti.innerHTML = "";
+  }
+}
+
+function setPodiumSlot(slot, team) {
+  const nameEl   = slot === 1 ? podiumName1   : slot === 2 ? podiumName2   : podiumName3;
+  const scoreEl  = slot === 1 ? podiumScore1  : slot === 2 ? podiumScore2  : podiumScore3;
+  const avatarEl = slot === 1 ? podiumAvatar1 : slot === 2 ? podiumAvatar2 : podiumAvatar3;
+
+  if (!nameEl || !scoreEl || !avatarEl) return;
+
+  if (!team) {
+    nameEl.textContent = "—";
+    scoreEl.textContent = "—";
+    avatarEl.removeAttribute("src");
+    avatarEl.style.opacity = "0.35";
+    return;
+  }
+
+  nameEl.textContent = team.name || "—";
+  scoreEl.textContent = `${team.score ?? 0} pts`;
+
+  if (team.avatar && typeof team.avatar === "string" && team.avatar.startsWith("data:image")) {
+    avatarEl.src = team.avatar;
+    avatarEl.style.opacity = "1";
+  } else {
+    avatarEl.removeAttribute("src");
+    avatarEl.style.opacity = "0.35";
+  }
+}
+
+function spawnConfetti() {
+  if (!podiumConfetti) return;
+  podiumConfetti.style.display = "block";
+  podiumConfetti.innerHTML = "";
+
+  const pieces = 80;
+  for (let i = 0; i < pieces; i++) {
+    const el = document.createElement("div");
+    el.className = "confetti";
+    el.style.left = `${Math.random() * 100}%`;
+    el.style.width = `${6 + Math.random() * 10}px`;
+    el.style.height = `${8 + Math.random() * 14}px`;
+    el.style.opacity = `${0.5 + Math.random() * 0.5}`;
+    el.style.animationDuration = `${1200 + Math.random() * 1200}ms`;
+    el.style.transform = `rotate(${Math.random() * 360}deg)`;
+    el.style.background = `hsl(${Math.floor(Math.random() * 360)}, 90%, 60%)`;
+    podiumConfetti.appendChild(el);
+  }
+
+  setTimeout(() => {
+    if (podiumConfetti) podiumConfetti.innerHTML = "";
+  }, 2200);
+}
+
+function showPodium(leaderboard) {
+  if (!podiumScreen) return;
+
+  // esconder ecrãs normais
+  if (mazeBoard) mazeBoard.style.display = "none";
+  if (betweenQuestionsDiv) betweenQuestionsDiv.style.display = "none";
+  if (questionContainer) questionContainer.innerHTML = "";
+  if (answersCountDiv) answersCountDiv.textContent = "";
+  if (explanationDiv) explanationDiv.innerHTML = "";
+  if (powerLogDiv) powerLogDiv.style.display = "none";
+  if (timerBarWrapper) timerBarWrapper.style.display = "none";
+  if (timeUpBanner) timeUpBanner.style.display = "none";
+  if (lobbyInstructionsDiv) lobbyInstructionsDiv.style.display = "none";
+
+  currentPhase = "finished";
+
+  const top = Array.isArray(leaderboard) ? leaderboard.slice(0, 3) : [];
+  setPodiumSlot(1, top[0]); // 1º
+  setPodiumSlot(2, top[1]); // 2º
+  setPodiumSlot(3, top[2]); // 3º
+
+  podiumScreen.style.display = "block";
+  spawnConfetti();
+}
+
+
 
 function drawMazeBoard() {
   if (!pMaze || !mazeBoard) return;
@@ -555,6 +657,7 @@ socket.on("presentation:connected", (game) => {
 
 // ---------- ECRÃ DE LOBBY / INSTRUÇÕES ----------
 socket.on("presentation:showLobby", () => {
+  hidePodium();
   console.log("presentation:showLobby");
   currentPhase = "idle";
 
@@ -875,7 +978,8 @@ socket.on("presentation:nextScreen", ({ nextIndex, total, isBonus }) => {
   lastBlockedTeamIds = [];
   lastResults = null;
 
-  const n = (nextIndex ?? 0) + 1;
+const n = Math.min(((nextIndex ?? 0) + 1), totalQuestions);
+
 
   betweenQuestionsDiv.innerHTML = isBonus
     ? `<div class="round-banner">RONDA BÓNUS</div>`
@@ -884,6 +988,18 @@ socket.on("presentation:nextScreen", ({ nextIndex, total, isBonus }) => {
   betweenQuestionsDiv.style.display = "block";
   renderAnswersProgress();
 });
+
+
+socket.on("presentation:showPodium", ({ leaderboard }) => {
+  showPodium(leaderboard);
+});
+
+// fallback (caso o servidor só emita game:finished)
+socket.on("game:finished", ({ leaderboard }) => {
+  showPodium(leaderboard);
+});
+
+
 
 // ---------- RANKING ----------
 socket.on("game:scoreUpdate", ({ leaderboard }) => {

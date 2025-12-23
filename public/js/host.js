@@ -201,6 +201,25 @@ socket.on("presentation:nextScreen", () => {
   nextQuestionBtn.disabled = true;
 });
 
+
+socket.on("game:finished", ({ leaderboard }) => {
+  hostStatus.textContent = "Jogo terminado! 🎉";
+  showQuestionBtn.disabled = true;
+  showAnswersBtn.disabled = true;
+  closeAnswersBtn.disabled = true;
+  revealAnswerBtn.disabled = true;
+  nextQuestionBtn.disabled = true;
+
+  if (Array.isArray(leaderboard) && leaderboard.length) {
+    const top3 = leaderboard
+      .slice(0, 3)
+      .map((t, i) => `${i + 1}º ${t.name} (${t.score} pts)`)
+      .join(" | ");
+    hostStatus.textContent = `Jogo terminado! 🎉  ${top3}`;
+  }
+});
+
+
 socket.on("game:teamsUpdated", (teams) => {
   teamsList.innerHTML = "";
   teams.forEach((t) => {

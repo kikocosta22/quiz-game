@@ -671,7 +671,7 @@
   padding: 24px 40px;
   border-radius: 999px;
   font-family: "Bangers", system-ui, sans-serif;
-  font-size: 5rem;
+  font-size: 8rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   border: 3px solid #facc15;
@@ -709,8 +709,8 @@
   }
 
   .timerPhoto {
-    width: 48px;
-    height: 48px;
+    width: 80px;
+    height: 80px;
   }
 }
 
@@ -978,6 +978,152 @@
   font-size: 3.2rem;
   letter-spacing: .12em;
 }
+
+
+#podium-screen{
+  position:absolute;
+  inset: 0;
+  display:none;
+  padding: 40px 30px;
+  z-index: 50;
+  background: rgba(10,10,20,0.86);
+  backdrop-filter: blur(6px);
+  border-radius: 24px;
+}
+
+.podium-header{
+  text-align:center;
+  margin-bottom: 20px;
+}
+
+.podium-title{
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.podium-subtitle{
+  font-size: 18px;
+  opacity: 0.85;
+  margin-top: 6px;
+}
+
+.podium-steps{
+  margin-top: 25px;
+  display:flex;
+  justify-content:center;
+  align-items:flex-end;
+  gap: 18px;
+}
+
+.podium-step{
+  width: 28%;
+  min-width: 200px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  transform: translateY(25px) scale(0.98);
+  opacity: 0;
+  animation: podiumIn 700ms ease-out forwards;
+}
+
+.podium-step.first { animation-delay: 120ms; }
+.podium-step.second{ animation-delay: 0ms; }
+.podium-step.third { animation-delay: 220ms; }
+
+@keyframes podiumIn{
+  from { opacity: 0; transform: translateY(35px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.podium-card{
+  width: 100%;
+  padding: 14px 14px 10px 14px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+  text-align:center;
+}
+
+.podium-rank{
+  font-size: 22px;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.podium-avatar{
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.08);
+}
+
+.podium-name{
+  margin-top: 10px;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.podium-score{
+  margin-top: 4px;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.podium-block{
+  width: 100%;
+  border-radius: 18px 18px 22px 22px;
+  margin-top: 10px;
+  background: rgba(255,255,255,0.14);
+  border: 1px solid rgba(255,255,255,0.14);
+  transform-origin: bottom;
+  animation: rise 650ms cubic-bezier(.2,.9,.2,1) forwards;
+}
+
+.podium-block.h1{ height: 180px; animation-delay: 220ms; }
+.podium-block.h2{ height: 140px; animation-delay: 80ms; }
+.podium-block.h3{ height: 110px; animation-delay: 320ms; }
+
+@keyframes rise{
+  from { transform: scaleY(0.05); }
+  to   { transform: scaleY(1); }
+}
+
+.podium-footer{
+  margin-top: 26px;
+  text-align:center;
+  font-size: 18px;
+  opacity: 0.95;
+}
+
+/* confetti */
+#podium-confetti{
+  position: absolute;
+  inset: 0;
+  pointer-events:none;
+  overflow:hidden;
+  z-index: 60;
+}
+
+.confetti{
+  position:absolute;
+  top: -10px;
+  width: 10px;
+  height: 14px;
+  opacity: 0.9;
+  border-radius: 2px;
+  animation: confettiFall 1700ms linear forwards;
+}
+
+@keyframes confettiFall{
+  to { transform: translateY(120vh) rotate(540deg); opacity: 0.95; }
+}
+
+
+
 @keyframes avatarJoin {
   0% {
     transform: scale(0) translateY(200px);
@@ -1121,6 +1267,51 @@
         <div id="power-log"></div>
         <div id="explanation"></div>
         <div id="between-questions" style="display:none;margin-top:10%;">A aguardar próxima pergunta…</div>
+
+        <!-- ECRÃ FINAL: PÓDIO -->
+<div id="podium-screen" style="display:none;">
+  <div class="podium-header">
+    <div class="podium-title">RESULTADO FINAL</div>
+    <div class="podium-subtitle">PÓDIO</div>
+  </div>
+
+  <div class="podium-steps">
+    <div class="podium-step second">
+      <div class="podium-card">
+        <div class="podium-rank">2º</div>
+        <img id="podiumAvatar2" class="podium-avatar" alt="2º" />
+        <div id="podiumName2" class="podium-name">—</div>
+        <div id="podiumScore2" class="podium-score">—</div>
+      </div>
+      <div class="podium-block h2"></div>
+    </div>
+
+    <div class="podium-step first">
+      <div class="podium-card">
+        <div class="podium-rank">1º</div>
+        <img id="podiumAvatar1" class="podium-avatar" alt="1º" />
+        <div id="podiumName1" class="podium-name">—</div>
+        <div id="podiumScore1" class="podium-score">—</div>
+      </div>
+      <div class="podium-block h1"></div>
+    </div>
+
+    <div class="podium-step third">
+      <div class="podium-card">
+        <div class="podium-rank">3º</div>
+        <img id="podiumAvatar3" class="podium-avatar" alt="3º" />
+        <div id="podiumName3" class="podium-name">—</div>
+        <div id="podiumScore3" class="podium-score">—</div>
+      </div>
+      <div class="podium-block h3"></div>
+    </div>
+  </div>
+
+  <div class="podium-footer">Obrigado por jogarem! 🎉</div>
+</div>
+
+<div id="podium-confetti" style="display:none;"></div>
+
       </div>
 
 

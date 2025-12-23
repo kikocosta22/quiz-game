@@ -126,6 +126,41 @@ function emitScoreUpdate(game) {
   const leaderboard = [...game.teams].sort((a,b) => b.score - a.score);
   io.to(game.code).emit("game:scoreUpdate", { leaderboard });
 }
+function getLeaderboard(game) {
+  return [...game.teams].sort((a, b) => b.score - a.score);
+}
+
+function finishGame(game) {
+  if (!game || game.status === "finished") return;
+
+  game.status = "finished";
+  game.phase = "finished";
+
+  const leaderboard = getLeaderboard(game);
+
+  // ranking final para todos
+  io.to(game.code).emit("game:finished", {
+    leaderboard,
+    total: game.questions.length
+  });
+
+  // ecrã de pódio na apresentação
+  io.to(game.code).emit("presentation:showPodium", {
+    leaderboard,
+    total: game.questions.length
+  });
+
+  // telemóveis: mostrar fim
+  io.to(game.code).emit("team:showHold", {
+    title: "FIM",
+    subtitle: "Obrigado por jogar!"
+  });
+
+  emitPhase(game);
+  emitScoreUpdate(game);
+}
+
+
 
 function emitAnswersProgress(game, qIndex) {
 
@@ -161,6 +196,12 @@ function emitAnswersProgress(game, qIndex) {
 
 function syncTeamState(game, team, socket) {
   if (!game || !team) return;
+
+  if (game.status === "finished") {
+    socket.emit("team:showHold", { title: "FIM", subtitle: "Obrigado por jogar!" });
+    return;
+  }
+
   if (game.status !== "started") return;
 
   const qIndex = game.currentQuestion;
@@ -273,11 +314,20 @@ if (phase === "between" || phase === "question") {
 function syncPresentationState(game, socket) {
   if (!game) return;
 
-  // antes do jogo começar
-   if (game.status !== "started") {
-    socket.emit("presentation:showLobby", {});
-    return;
-  }
+// jogo terminado
+if (game.status === "finished") {
+  socket.emit("presentation:showPodium", {
+    leaderboard: getLeaderboard(game),
+    total: game.questions.length
+  });
+  return;
+}
+
+// antes do jogo começar
+if (game.status !== "started") {
+  socket.emit("presentation:showLobby", {});
+  return;
+}
 
   const qIndex = game.currentQuestion;
   const q = game.questions[qIndex];
@@ -513,11 +563,13 @@ io.to(code).emit("presentation:nextScreen", {
     if (!game || game.status !== "started") return;
 
     const next = game.currentQuestion + 1;
-    if (next >= game.questions.length) {
-      game.status = "finished";
-      io.to(code).emit("game:finished");
-      return;
-    }
+
+if (next >= game.questions.length) {
+  finishGame(game);
+  return;
+}
+
+
  if (isBonusRound(game, next)) {
     game.phase = "maze";
     emitPhase(game);
@@ -1097,6 +1149,12 @@ io.to(code).emit("team:showHold", {
 emitPhase(game);
 
 const ni = game.currentQuestion + 1;
+
+if (ni >= game.questions.length) {
+  finishGame(game);
+  return;
+}
+
 io.to(code).emit("presentation:nextScreen", {
   nextIndex: ni,
   total: game.questions.length,
@@ -1177,7 +1235,7 @@ socket.on("team:mazeFinished", ({ code, teamId }) => {
         title: "RONDA",
         subtitle: "A próxima pergunta vai começar…"
       });
-    }, 6000);
+    }, 5000);
   }
 });
 
