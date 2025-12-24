@@ -386,7 +386,7 @@
   "questionText": "A que jogador pertence este percurso no mundo do futebol?",
     "questionMedia": {
       "type": "image",
-      "url": "/media/gelado2.png"
+      "url": "/media/jogador.jpg"
     },
     "options": [
       { "type": "text", "value": "Derlei" },
@@ -397,7 +397,7 @@
     "correctIndex": 2,
     "explanation": {
   "type": "image",
-  "value": "/media/gelado.png"
+  "value": "/media/jogador.jpg"
 }
   },
 
