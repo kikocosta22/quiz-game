@@ -415,7 +415,7 @@
       { "type": "text", "value": "Secador estragado" },
       { "type": "text", "value": "Torneio Padel & Caricas" }
     ],
-    "correctIndex": 2,
+    "correctIndex": 3,
     "explanation": {
   "type": "image",
   "value": "/media/gelado.png"
@@ -456,7 +456,7 @@
       { "type": "text", "value": "Passagem de ano 2024" },
       { "type": "text", "value": "Voltar de jantar fora com os pais da Joana" }
     ],
-    "correctIndex": 2,
+    "correctIndex": 1,
     "explanation": {
   "type": "image",
   "value": "/media/microbio.JPG"
@@ -498,7 +498,7 @@
       { "type": "text", "value": "2" },
       { "type": "text", "value": "3" }
     ],
-    "correctIndex": 0,
+    "correctIndex": 1,
     "explanation": {
   "type": "image",
   "value": "/media/motao.JPG"
@@ -575,7 +575,7 @@
   "questionText": "O Mourão está prestes a entrar neste video. Que frase vai ele dizer repetidamente?",
     "questionMedia": {
       "type": "video",
-      "url": "/media/mourao.MP4"
+      "url": "/media/mourao2.mp4"
     },
     "options": [
          { "type": "text", "value": "Quero fumar um iqos" },
@@ -583,7 +583,7 @@
       { "type": "text", "value": "Tou todo fodido!" },
       { "type": "text", "value": "Tens de ter calma." }
     ],
-    "correctIndex": 2,
+    "correctIndex": 3,
     "explanation": {
   "type": "video",
   "value": "/media/mourao.MP4"

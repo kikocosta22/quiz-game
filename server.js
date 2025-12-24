@@ -153,7 +153,7 @@ function finishGame(game) {
   // telemóveis: mostrar fim
   io.to(game.code).emit("team:showHold", {
     title: "FIM",
-    subtitle: "Obrigado por jogar!"
+    subtitle: "Obrigado por jogarem!"
   });
 
   emitPhase(game);

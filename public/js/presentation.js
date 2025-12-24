@@ -121,6 +121,9 @@ function getCachedImg(src, onload) {
 
 function enableAudioOnFirstGesture() {
   const unlock = () => {
+    soundEnabled = true;
+    unmuteAllVideos();
+
     // tenta iniciar a música que fizer sentido no momento
     playLobbyMusic();
     playGameMusic();
@@ -136,6 +139,17 @@ function enableAudioOnFirstGesture() {
 }
 
 enableAudioOnFirstGesture();
+
+let soundEnabled = false;
+
+function unmuteAllVideos() {
+  document.querySelectorAll("video").forEach(v => {
+    try {
+      v.muted = false;
+      v.volume = 1;
+    } catch {}
+  });
+}
 
 function renderLobbyQr() {
   if (!code || !lobbyQrDiv || typeof QRCode === "undefined") return;
@@ -739,7 +753,8 @@ socket.on("presentation:showQuestion", ({ index, total, question }) => {
   vid.src = question.questionMedia.url;
   vid.controls = true;
   vid.autoplay = true;
-  vid.muted = true;       // para o autoplay funcionar em browsers
+  vid.muted = !soundEnabled;
+vid.volume = 1;;       // para o autoplay funcionar em browsers
   vid.playsInline = true; // iOS
   mediaDiv.appendChild(vid);
 }
@@ -793,7 +808,8 @@ startAnswerTimer(lastQuestionTimeLimit, code);
         vid.src = opt.value;
         vid.controls = true;
         vid.autoplay = true;
-        vid.muted = true;
+        vid.muted = !soundEnabled;
+vid.volume = 1;;
         vid.playsInline = true;
         o.appendChild(vid);
       }
@@ -903,7 +919,8 @@ socket.on(
           const vid = document.createElement("video");
            vid.controls = true;
           vid.autoplay = true;
-          vid.muted = true;
+          vid.muted = !soundEnabled;
+vid.volume = 1;;
           vid.playsInline = true;
           vid.src = explanation.value;
           vid.controls = true;

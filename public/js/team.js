@@ -802,7 +802,8 @@ socket.on("team:showOptions", ({ index, type, options }) => {
   vid.src = opt.value;
   vid.controls = true;
   vid.autoplay = true;
-  vid.muted = true;
+  vid.muted = !soundEnabled;
+vid.volume = 1;;
   vid.playsInline = true;
   btn.appendChild(vid);
 }
