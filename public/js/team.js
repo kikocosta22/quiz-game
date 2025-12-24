@@ -498,7 +498,7 @@ socket.on("game:teamsUpdated", (teams) => {
 // receber lista de equipas bloqueadas na pergunta atual
 socket.on("team:blockedTeams", ({ blockedTeamIds }) => {
   currentBlockedTeamIds = blockedTeamIds || [];
-});
+});    
 
 socket.on("joinError", (msg) => {
   alert("Erro: " + msg);
