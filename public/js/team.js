@@ -5,8 +5,14 @@ const params = new URLSearchParams(window.location.search);
 const codeFromUrl = params.get("code");
 const roleFromUrl = params.get("role") || "team";
 
-let gameCode = codeFromUrl || "";
-let teamId = sessionStorage.getItem("teamId") || null;
+const LS_LAST_CODE_KEY = "quiz:lastCode";
+const LS_TEAM_ID_PREFIX = "quiz:teamId:"; // + CODE
+
+let gameCode = (codeFromUrl || localStorage.getItem(LS_LAST_CODE_KEY) || "").toUpperCase();
+let teamId = gameCode ? (localStorage.getItem(LS_TEAM_ID_PREFIX + gameCode) || null) : null;
+
+let didAutoJoin = false;
+
 
 // DOM
 const joinFormDiv = document.getElementById("joinForm");
@@ -434,6 +440,7 @@ if (joinBtn) {
     }
 
     gameCode = code;
+    localStorage.setItem(LS_LAST_CODE_KEY, gameCode);
 
     const file = avatarFileInput?.files?.[0];
     if (file) {
@@ -467,15 +474,20 @@ if (joinBtn) {
   });
 }
 
-// auto-join em refresh
-if (gameCode && roleFromUrl === "team" && teamId) {
-  console.log("Auto-join como equipa existente", teamId, "no jogo", gameCode);
-  socket.emit("joinGame", {
-    code: gameCode,
-    role: "team",
-    teamId
-  });
-}
+socket.on("connect", () => {
+  // Recalcular caso o code venha do URL ou do localStorage
+  gameCode = (codeFromUrl || localStorage.getItem(LS_LAST_CODE_KEY) || "").toUpperCase();
+  if (gameCodeInput && gameCode) gameCodeInput.value = gameCode;
+
+  teamId = gameCode ? (localStorage.getItem(LS_TEAM_ID_PREFIX + gameCode) || sessionStorage.getItem("teamId") || null) : null;
+
+  if (!didAutoJoin && roleFromUrl === "team" && gameCode && teamId) {
+    didAutoJoin = true;
+    console.log("Auto-join no connect:", teamId, "game:", gameCode);
+    socket.emit("joinGame", { code: gameCode, role: "team", teamId });
+  }
+});
+
 
 // receber lista de equipas (vindo do server via host:teamsUpdated)
 socket.on("game:teamsUpdated", (teams) => {
@@ -490,12 +502,25 @@ socket.on("team:blockedTeams", ({ blockedTeamIds }) => {
 
 socket.on("joinError", (msg) => {
   alert("Erro: " + msg);
+
+  // se a tua sessão guardada ficou inválida (ex: server reiniciou), limpa
+  if (msg.includes("não existe") || msg.includes("já começou")) {
+    if (gameCode) localStorage.removeItem(LS_TEAM_ID_PREFIX + gameCode);
+    sessionStorage.removeItem("teamId");
+    teamId = null;
+  }
 });
 
 
 socket.on("team:joined", (team) => {
   console.log("team:joined", team);
   teamId = team.id;
+  if (gameCode) {
+  localStorage.setItem(LS_TEAM_ID_PREFIX + gameCode, teamId);
+  localStorage.setItem(LS_LAST_CODE_KEY, gameCode);
+}
+sessionStorage.setItem("teamId", teamId);
+
   myAvatarSrc = team.avatar || null;
   myMazeAvatarImg = null;
   if (joinFormDiv) joinFormDiv.style.display = "none";
@@ -542,9 +567,19 @@ socket.on("team:joined", (team) => {
 
 socket.on("team:storeId", (id) => {
   teamId = id;
+
+  // persistente (melhor em mobile)
+  if (gameCode) {
+    localStorage.setItem(LS_TEAM_ID_PREFIX + gameCode, id);
+    localStorage.setItem(LS_LAST_CODE_KEY, gameCode);
+  }
+
+  // opcional: manter também sessionStorage
   sessionStorage.setItem("teamId", id);
-  console.log("Stored teamId in sessionStorage:", id);
+
+  console.log("Stored teamId:", id, "for game:", gameCode);
 });
+
 
 function renderPowers() {
   powerButtons.forEach((btn) => {
