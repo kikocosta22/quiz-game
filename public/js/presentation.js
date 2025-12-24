@@ -752,8 +752,11 @@ socket.on("presentation:showQuestion", ({ index, total, question }) => {
   const vid = document.createElement("video");
   vid.src = question.questionMedia.url;
   vid.controls = true;
-  vid.autoplay = true;
-  vid.muted = !soundEnabled;
+vid.autoplay = true;
+vid.muted = true;         // ✅ autoplay permitido
+vid.playsInline = true;
+const p = vid.play();     // evita “Uncaught (in promise)”
+if (p?.catch) p.catch(()=>{});
 vid.volume = 1;;       // para o autoplay funcionar em browsers
   vid.playsInline = true; // iOS
   mediaDiv.appendChild(vid);

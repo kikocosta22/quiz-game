@@ -836,8 +836,11 @@ socket.on("team:showOptions", ({ index, type, options }) => {
   const vid = document.createElement("video");
   vid.src = opt.value;
   vid.controls = true;
-  vid.autoplay = true;
-  vid.muted = !soundEnabled;
+vid.autoplay = true;
+vid.muted = true;         // ✅ autoplay permitido
+vid.playsInline = true;
+const p = vid.play();
+if (p?.catch) p.catch(()=>{});
 vid.volume = 1;;
   vid.playsInline = true;
   btn.appendChild(vid);
