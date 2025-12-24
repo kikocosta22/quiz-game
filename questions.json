@@ -260,7 +260,7 @@
     "questionText": "Quem enviou e recebeu, respetivamente, esta mensagem no Rotos?",
     "questionMedia": {
       "type": "image",
-      "url": "/media/conversa2.png"
+      "url": "/media/conversa3.png"
     },
     "options": [
       { "type": "text", "value": "Miguel para Branco" },
@@ -407,7 +407,7 @@
   "questionText": "Qual foi o motivo da discussão entre Afonso e Chousa nas últimas férias de Verão?",
     "questionMedia": {
       "type": "image",
-      "url": "/media/gelado2.png"
+      "url": "/media/discussao.PNG"
     },
     "options": [
          { "type": "text", "value": "Afonso prometeu algo e não cumpriu" },
@@ -418,7 +418,7 @@
     "correctIndex": 3,
     "explanation": {
   "type": "image",
-  "value": "/media/gelado.png"
+  "value": "/media/discussao.PNG"
 }
   },
    {
@@ -554,7 +554,7 @@
   "questionText": "Qual foi o motivo em especial para a realização deste vídeo?",
     "questionMedia": {
       "type": "video",
-      "url": "/media/namorados-sem-som.mp4"
+      "url": "/media/namorados-sem-som1.mp4"
     },
     "options": [
          { "type": "text", "value": "Pedido de casamento de um casal" },
@@ -565,7 +565,7 @@
     "correctIndex": 1,
     "explanation": {
   "type": "video",
-  "value": "/media/namorados.MP4"
+  "value": "/media/namorados1.MP4"
 }
   },
 
