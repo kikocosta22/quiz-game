@@ -939,107 +939,129 @@ socket.on("host:forceCloseAnswers", ({ code }) => {
 //    o(s) ladrão(ões) também ganham 10 pontos
 if (q.type === "approximation") {
   const answers = game.answers[qIndex] || {};
-  let bestTeamId = null;
   let minDist = null;
 
-  // avaliar só não bloqueados
+  // avaliar respostas (guardar tudo no results) - bloqueados não contam para a vitória
   for (const t of game.teams) {
     const a = answers[t.id];
     if (!a) continue;
 
     const val = parseFloat(a.answer);
     const dist = Math.abs(val - q.correctNumber);
+    const ts = a.timestamp || 0;
 
     // guardar no results (para mostrar números), mas marcando bloqueados
     if (blockedSet.has(t.id)) {
-      results[t.id] = { blocked: true, answer: val, distance: dist };
+      results[t.id] = { blocked: true, answer: val, distance: dist, ts };
       continue;
     }
-    results[t.id] = { ...(results[t.id] || {}), answer: val, distance: dist, ts: a.timestamp || 0 };
 
-    if (
-      minDist === null ||
-      dist < minDist ||
-      (dist === minDist && results[t.id].ts < (results[bestTeamId]?.ts || Infinity))
-    ) {
+    results[t.id] = { ...(results[t.id] || {}), answer: val, distance: dist, ts };
+
+    if (minDist === null || dist < minDist) {
       minDist = dist;
-      bestTeamId = t.id;
     }
   }
 
-      if (bestTeamId) {
-      const winner = game.teams.find(t => t.id === bestTeamId);
-      if (winner) {
-        winner.score += POINTS_APPROX_WINNER;
-        results[bestTeamId] = {
-          ...(results[bestTeamId] || {}),
-          winner: true
-        };
-      }
+  if (minDist !== null) {
+    // 1) apurar vencedores
+    // - se houver várias equipas com a MESMA resposta e mesma distância mínima, todas ganham
+    // - se houver empate de distância com respostas diferentes, mantém-se o desempate por quem respondeu primeiro (timestamp)
+    const groups = new Map(); // answerValue -> { teamIds: [], minTs: number }
 
-      // CADEIA DE ROUBOS A PARTIR DO VENCEDOR
-      const stealsThisQ = game.steals[qIndex] || {};
+    for (const t of game.teams) {
+      const r = results[t.id];
+      if (!r || r.blocked) continue;
+      if (typeof r.distance !== "number") continue;
+      if (r.distance !== minDist) continue;
 
-      // mapa vítima -> [ladrões]
-      const victimToThieves = {};
-      for (const thiefId in stealsThisQ) {
-        const victimId = stealsThisQ[thiefId];
-        if (!victimToThieves[victimId]) {
-          victimToThieves[victimId] = [];
-        }
-        victimToThieves[victimId].push(thiefId);
-      }
-
-      const awardedStealIdsApprox = new Set();
-
-      const queue = [bestTeamId];
-      const visited = new Set([bestTeamId]);
-
-      while (queue.length > 0) {
-        const victimId = queue.shift();
-        const thieves = victimToThieves[victimId] || [];
-
-        for (const thiefId of thieves) {
-          if (visited.has(thiefId)) continue;
-          visited.add(thiefId);
-
-          // ladrão bloqueado não ganha nem continua cadeia
-          if (blockedSet.has(thiefId)) {
-            continue;
-          }
-
-          if (!awardedStealIdsApprox.has(thiefId)) {
-            const thief = game.teams.find(t => t.id === thiefId);
-            if (thief) {
-              thief.score += POINTS_APPROX_WINNER;
-              results[thiefId] = {
-                ...(results[thiefId] || {}),
-                winnerViaSteal: true
-              };
-              awardedStealIdsApprox.add(thiefId);
-            }
-          }
-
-          // continuar a subir na cadeia de roubo
-          queue.push(thiefId);
-        }
-      }
-
-      // quem usou roubo e não está na cadeia do vencedor → roubo falhou
-      for (const thiefId in stealsThisQ) {
-        if (blockedSet.has(thiefId)) continue;
-        if (!awardedStealIdsApprox.has(thiefId)) {
-          results[thiefId] = {
-            ...(results[thiefId] || {}),
-            stealFail: true
-          };
-        }
-      }
-    } else {
-      // ninguém elegível → nada a pontuar
+      const key = r.answer; // número
+      const g = groups.get(key) || { teamIds: [], minTs: Infinity };
+      g.teamIds.push(t.id);
+      g.minTs = Math.min(g.minTs, r.ts || 0);
+      groups.set(key, g);
     }
 
+    // escolher o grupo vencedor (por timestamp mais antigo) e premiar TODAS as equipas desse grupo
+    let winnerGroup = null;
+    for (const g of groups.values()) {
+      if (!winnerGroup || g.minTs < winnerGroup.minTs) {
+        winnerGroup = g;
+      }
+    }
+
+    const winnerIds = winnerGroup ? winnerGroup.teamIds : [];
+
+    // atribuir pontos aos vencedores
+    for (const id of winnerIds) {
+      const winner = game.teams.find(t => t.id === id);
+      if (winner) winner.score += POINTS_APPROX_WINNER;
+      results[id] = {
+        ...(results[id] || {}),
+        winner: true
+      };
+    }
+
+    // 2) CADEIA DE ROUBOS A PARTIR DO(S) VENCEDOR(ES)
+    const stealsThisQ = game.steals[qIndex] || {};
+
+    // mapa vítima -> [ladrões]
+    const victimToThieves = {};
+    for (const thiefId in stealsThisQ) {
+      const victimId = stealsThisQ[thiefId];
+      if (!victimToThieves[victimId]) victimToThieves[victimId] = [];
+      victimToThieves[victimId].push(thiefId);
+    }
+
+    const awardedStealIdsApprox = new Set();
+    const queue = [...winnerIds];
+    const visited = new Set(winnerIds);
+
+    while (queue.length > 0) {
+      const victimId = queue.shift();
+      const thieves = victimToThieves[victimId] || [];
+
+      for (const thiefId of thieves) {
+        if (visited.has(thiefId)) continue;
+        visited.add(thiefId);
+
+        // ladrão bloqueado não ganha nem continua cadeia
+        if (blockedSet.has(thiefId)) {
+          continue;
+        }
+
+        if (!awardedStealIdsApprox.has(thiefId)) {
+          const thief = game.teams.find(t => t.id === thiefId);
+          if (thief) {
+            thief.score += POINTS_APPROX_WINNER;
+            results[thiefId] = {
+              ...(results[thiefId] || {}),
+              winnerViaSteal: true
+            };
+            awardedStealIdsApprox.add(thiefId);
+          }
+        }
+
+        // continuar a subir na cadeia de roubo
+        queue.push(thiefId);
+      }
+    }
+
+    // quem usou roubo e não está na cadeia do(s) vencedor(es) → roubo falhou
+    for (const thiefId in stealsThisQ) {
+      if (blockedSet.has(thiefId)) continue;
+      if (!awardedStealIdsApprox.has(thiefId)) {
+        results[thiefId] = {
+          ...(results[thiefId] || {}),
+          stealFail: true
+        };
+      }
+    }
+  } else {
+    // ninguém elegível → nada a pontuar
+  }
 }
+
 
 
 
