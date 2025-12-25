@@ -62,12 +62,12 @@ const beepSfx = document.getElementById("beepSfx");
 // (muda os paths para as imagens que quiseres)
 const MAZE_THEMES = {
   bonus1: {
-    playerSrc: "/media/branco.png",          // já existente
-    goalSrc:   "/media/head.png",            // já existente
+    playerSrc: "/media2/queni.png",          // já existente
+    goalSrc:   "/media2/mel.png",            // já existente
   },
   bonus2: {
-    playerSrc: "/media/curval.png",   // <-- cria/ajusta estes ficheiros
-    goalSrc:   "/media/mariana.png",
+    playerSrc: "/media2/queni.png",   // <-- cria/ajusta estes ficheiros
+    goalSrc:   "/media2/mel.png",
   },
 };
 
