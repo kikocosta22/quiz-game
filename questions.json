@@ -407,7 +407,7 @@
   "questionText": "Qual foi o motivo da discussão entre Afonso e Chousa nas últimas férias de Verão?",
     "questionMedia": {
       "type": "image",
-      "url": "/media/discussao.PNG"
+      "url": "/media/discussao2.png"
     },
     "options": [
          { "type": "text", "value": "Afonso prometeu algo e não cumpriu" },
@@ -418,7 +418,7 @@
     "correctIndex": 3,
     "explanation": {
   "type": "image",
-  "value": "/media/discussao.PNG"
+  "value": "/media/discussao2.png"
 }
   },
    {
