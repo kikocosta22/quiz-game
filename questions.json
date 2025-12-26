@@ -233,25 +233,16 @@
   "value": "/media/gelado.png"
 }
   },
-  {
+   {
     "id": 13,
-    "type": "single",
-    "questionText": "Qual foi a palavra portuguesa escolhida para o ano de 2025?",
-    "questionMedia": {
-      "type": "image",
-      "url": "/media/question-mark.png"
-    },
-    "options": [
-      { "type": "text", "value": "Apagão" },
-      { "type": "text", "value": "Flotilha" },
-      { "type": "text", "value": "Emigração" },
-      { "type": "text", "value": "Agente" }
-    ],
-    "correctIndex": 0,
+    "type": "approximation",
+    "questionText": "O Branco vai vender o seu carro. Qaul vai ser o valor da venda? (em €)",
+    "questionMedia": { "type": "image", "url": "/media/brancocarro.png" },
+    "correctNumber": 10000,
     "explanation": {
-  "type": "image",
-  "value": "/media/question-mark.png"
-}
+      "type": "none",
+      "value": ""
+    }
   },
 
     {
